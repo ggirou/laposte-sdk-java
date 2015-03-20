@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/LaPosteApi/laposte-sdk-java.png?branch=master)](https://travis-ci.org/LaPosteApi/laposte-sdk-java)
 [![Coverage Status](https://coveralls.io/repos/LaPosteApi/laposte-sdk-java/badge.svg)](https://coveralls.io/r/LaPosteApi/laposte-sdk-java)
+<!--[![Maven Central](https://maven-badges.herokuapp.com/maven-central/fr.laposte.api/laposte-sdk/badge.svg)](https://maven-badges.herokuapp.com/maven-central/fr.laposte.api/laposte-sdk)-->
 
 # La Poste Open API SDK Java
 
