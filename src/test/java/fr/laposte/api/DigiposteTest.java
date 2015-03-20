@@ -3,9 +3,16 @@ package fr.laposte.api;
 import static com.jcabi.matchers.RegexMatchers.matchesPattern;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -64,6 +71,70 @@ public class DigiposteTest {
 		final JSONArray docs = (JSONArray) result.get("documents");
 		assertTrue(docs.length() > 0);
 		assertTrue(result.getInt("count") >= docs.length());
+	}
+
+	@Test
+	public void testGetDocsSortedByTitle() throws Exception {
+		if (dgp.getDgpToken().accessToken == null) {
+			dgp.auth(null, null, null);
+		}
+		final JSONObject result = dgp.getDocs(null, null, null, "TITLE", true);
+		assertNotNull(result);
+		assertThat(result.get("documents"), instanceOf(JSONArray.class));
+		final JSONArray docs = (JSONArray) result.get("documents");
+		assertTrue(docs.length() > 0);
+		assertTrue(result.getInt("count") >= docs.length());
+		final List<String> titleList = new ArrayList<String>();
+		for (int i = 0; i < docs.length(); i++) {
+			final JSONObject doc = docs.getJSONObject(i);
+			titleList.add(doc.getString("title"));
+		}
+		final String[] titles = new String[titleList.size()];
+		titleList.toArray(titles);
+		logger.debug("titles : " + Arrays.toString(titles));
+		Collections.sort(titleList, new Comparator<String>() {
+
+			@Override
+			public int compare(String o1, String o2) {
+				return o1.toLowerCase().compareTo(o2.toLowerCase());
+			}
+		});
+		final String[] expectTitles = new String[titleList.size()];
+		titleList.toArray(expectTitles);
+		logger.debug("expectTitles : " + Arrays.toString(expectTitles));
+		assertArrayEquals(expectTitles, titles);
+	}
+
+	@Test
+	public void testGetDocsSortedByTitleDescending() throws Exception {
+		if (dgp.getDgpToken().accessToken == null) {
+			dgp.auth(null, null, null);
+		}
+		final JSONObject result = dgp.getDocs(null, null, null, "TITLE", false);
+		assertNotNull(result);
+		assertThat(result.get("documents"), instanceOf(JSONArray.class));
+		final JSONArray docs = (JSONArray) result.get("documents");
+		assertTrue(docs.length() > 0);
+		assertTrue(result.getInt("count") >= docs.length());
+		final List<String> titleList = new ArrayList<String>();
+		for (int i = 0; i < docs.length(); i++) {
+			final JSONObject doc = docs.getJSONObject(i);
+			titleList.add(doc.getString("title"));
+		}
+		final String[] titles = new String[titleList.size()];
+		titleList.toArray(titles);
+		logger.debug("titles : " + Arrays.toString(titles));
+		Collections.sort(titleList, new Comparator<String>() {
+
+			@Override
+			public int compare(String o1, String o2) {
+				return o2.toLowerCase().compareTo(o1.toLowerCase());
+			}
+		});
+		final String[] expectTitles = new String[titleList.size()];
+		titleList.toArray(expectTitles);
+		logger.debug("expectTitles : " + Arrays.toString(expectTitles));
+		assertArrayEquals(expectTitles, titles);
 	}
 
 }
