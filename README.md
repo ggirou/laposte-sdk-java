@@ -143,6 +143,6 @@ public class DigiposteSample {
 
 ## License
 
-This SDK is distributed under the [MIT License](https://raw.githubusercontent.com/LaPosteApi/laposte-sdk-js/master/LICENSE).
+This SDK is distributed under the [MIT License](https://raw.githubusercontent.com/LaPosteApi/laposte-sdk-java/master/LICENSE).
 
 Enjoy !
