@@ -1,7 +1,6 @@
 package fr.laposte.api;
 
 import java.net.MalformedURLException;
-import java.util.Map;
 
 import javax.xml.ws.http.HTTPException;
 
@@ -32,32 +31,34 @@ public class LaPoste {
 
 	private static final Logger logger = LoggerFactory.getLogger(LaPoste.class);
 
-	private final ApiClient apiClient;
+	private final LpSdk.ApiClient apiClient;
 	private Token token = new Token();
 
 	public LaPoste() throws MalformedURLException {
-		final Map<String, String> env = System.getenv();
-		final String baseUrl = env.get("LAPOSTE_API_BASE_URL");
-		this.apiClient = new ApiClient(baseUrl);
+		String baseUrl = System.getProperty(LpSdk.Env.LAPOSTE_API_BASE_URL);
+		if (baseUrl == null) {
+			baseUrl = LpSdk.Defaults.LAPOSTE_API_BASE_URL;
+		}
+		this.apiClient = new LpSdk.ApiClient(baseUrl);
 	}
 
 	public void auth(String clientId, String clientSecret, String username,
 			String password) throws MalformedURLException, UnirestException {
-		final Map<String, String> env = System.getenv();
 		if (clientId == null) {
-			clientId = env.get("LAPOSTE_API_CONSUMER_KEY");
+			clientId = System.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_KEY);
 		}
 		if (clientSecret == null) {
-			clientSecret = env.get("LAPOSTE_API_CONSUMER_SECRET");
+			clientSecret = System
+					.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_SECRET);
 		}
 		if (username == null) {
-			username = env.get("LAPOSTE_API_USERNAME");
+			username = System.getProperty(LpSdk.Env.LAPOSTE_API_USERNAME);
 		}
 		if (password == null) {
-			password = env.get("LAPOSTE_API_PASSWORD");
+			password = System.getProperty(LpSdk.Env.LAPOSTE_API_PASSWORD);
 		}
 		final HttpResponse<JsonNode> res = apiClient.post("/oauth2/token")
-				.header("accept", "application/json")
+				.header("Accept", "application/json")
 				.field("client_id", clientId)
 				.field("client_secret", clientSecret)
 				.field("grant_type", "password").field("username", username)
@@ -80,24 +81,33 @@ public class LaPoste {
 		logger.debug("token : " + token);
 	}
 
+	public LpSdk.ApiClient getApiClient() {
+		return apiClient;
+	}
+
+	public Token getToken() {
+		return token;
+	}
+
 	public void refreshToken(String clientId, String clientSecret,
 			String refreshToken) throws MalformedURLException, UnirestException {
-		final Map<String, String> env = System.getenv();
 		if (clientId == null) {
-			clientId = env.get("LAPOSTE_API_CONSUMER_KEY");
+			clientId = System.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_KEY);
 		}
 		if (clientSecret == null) {
-			clientSecret = env.get("LAPOSTE_API_CONSUMER_SECRET");
+			clientSecret = System
+					.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_SECRET);
 		}
 		if (refreshToken == null) {
 			refreshToken = token.refreshToken;
 		}
 		if (refreshToken == null) {
-			refreshToken = env.get("LAPOSTE_API_REFRESH_TOKEN");
+			refreshToken = System
+					.getProperty(LpSdk.Env.LAPOSTE_API_REFRESH_TOKEN);
 		}
 		logger.debug("refreshToken : " + refreshToken);
 		final HttpResponse<JsonNode> res = apiClient.post("/oauth2/token")
-				.header("accept", "application/json")
+				.header("Accept", "application/json")
 				.field("client_id", clientId)
 				.field("client_secret", clientSecret)
 				.field("grant_type", "refresh_token")
@@ -118,14 +128,6 @@ public class LaPoste {
 		token.type = result.getString("token_type");
 		token.expiresIn = result.getInt("expires_in");
 		logger.debug("token : " + token);
-	}
-
-	public ApiClient getApiClient() {
-		return apiClient;
-	}
-
-	public Token getToken() {
-		return token;
 	}
 
 	public void setToken(Token token) {

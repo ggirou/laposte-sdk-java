@@ -14,18 +14,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LaPosteTest {
-	private static LaPoste lp;
-
 	@AfterClass
 	public static void afterClass() throws Exception {
-		ApiClient.quit();
+		LpSdk.ApiClient.quit();
 	}
 
 	@BeforeClass
 	public static void beforeClass() throws Exception {
-		ApiClient.init();
+		LpSdk.ApiClient.init();
 		lp = new LaPoste();
 	}
+
+	private static LaPoste lp;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(LaPosteTest.class);
@@ -35,7 +35,6 @@ public class LaPosteTest {
 		lp.auth(null, null, null, null);
 		final LaPoste.Token token = lp.getToken();
 		assertNotNull(token);
-		assertThat(token, instanceOf(LaPoste.Token.class));
 		assertThat(token.accessToken, matchesPattern("\\w+"));
 		assertThat(token.refreshToken, matchesPattern("\\w+"));
 		assertEquals("default", token.scope);
