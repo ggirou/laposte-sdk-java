@@ -87,9 +87,13 @@ public class Digiposte {
 		return apiClient;
 	}
 
+	public DgpToken getDgpToken() {
+		return dgpToken;
+	}
+
 	public JSONObject getDocs(String location, Integer index,
 			Integer maxResults, String sort, Boolean ascending)
-			throws MalformedURLException, UnirestException {
+					throws MalformedURLException, UnirestException {
 		final String url = "/documents"
 				+ (location != null ? ("/" + location) : "");
 		HttpRequest req = apiClient.get(url)
@@ -121,10 +125,6 @@ public class Digiposte {
 		final JsonNode body = res.getBody();
 		final JSONObject result = body.getObject();
 		return result;
-	}
-
-	public DgpToken getDgpToken() {
-		return dgpToken;
 	}
 
 	public void setToken(DgpToken token) {
