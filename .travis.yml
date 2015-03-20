@@ -4,5 +4,5 @@ jdk:
   - oraclejdk7
   - openjdk6
 
-after_script:
-  - mvn clean -DTRAVIS_JOB_ID=$TRAVIS_JOB_ID cobertura:cobertura coveralls:report
+after_success:
+  - mvn clean cobertura:cobertura coveralls:report
