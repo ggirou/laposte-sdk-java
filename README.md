@@ -1,4 +1,4 @@
-
+[![Build Status](https://travis-ci.org/LaPosteApi/laposte-sdk-java.png?branch=master)](https://travis-ci.org/LaPosteApi/laposte-sdk-java)
 
 # La Poste Open API SDK Java
 
