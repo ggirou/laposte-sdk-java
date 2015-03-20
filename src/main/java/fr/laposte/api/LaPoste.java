@@ -33,8 +33,6 @@ public class LaPoste {
 	private static final Logger logger = LoggerFactory.getLogger(LaPoste.class);
 
 	private final ApiClient apiClient;
-	private String accessToken;
-	private String refreshToken;
 	private Token token = new Token();
 
 	public LaPoste() throws MalformedURLException {
@@ -82,28 +80,52 @@ public class LaPoste {
 		logger.debug("token : " + token);
 	}
 
-	public String getAccessToken() {
-		return accessToken;
+	public void refreshToken(String clientId, String clientSecret,
+			String refreshToken) throws MalformedURLException, UnirestException {
+		final Map<String, String> env = System.getenv();
+		if (clientId == null) {
+			clientId = env.get("LAPOSTE_API_CONSUMER_KEY");
+		}
+		if (clientSecret == null) {
+			clientSecret = env.get("LAPOSTE_API_CONSUMER_SECRET");
+		}
+		if (refreshToken == null) {
+			refreshToken = token.refreshToken;
+		}
+		if (refreshToken == null) {
+			refreshToken = env.get("LAPOSTE_API_REFRESH_TOKEN");
+		}
+		logger.debug("refreshToken : " + refreshToken);
+		final HttpResponse<JsonNode> res = apiClient.post("/oauth2/token")
+				.header("accept", "application/json")
+				.field("client_id", clientId)
+				.field("client_secret", clientSecret)
+				.field("grant_type", "refresh_token")
+				.field("refresh_token", refreshToken).asJson();
+		logger.debug("res : " + res);
+		final int code = res.getStatus();
+		logger.debug("code : " + code);
+		if (code != 200) {
+			throw new HTTPException(code);
+		}
+		// Map<String, List<String>> headers = res.getHeaders();
+		// logger.debug("headers : " + headers);
+		final JsonNode body = res.getBody();
+		final JSONObject result = body.getObject();
+		token.accessToken = result.getString("access_token");
+		token.refreshToken = result.getString("refresh_token");
+		token.scope = result.getString("scope");
+		token.type = result.getString("token_type");
+		token.expiresIn = result.getInt("expires_in");
+		logger.debug("token : " + token);
 	}
 
 	public ApiClient getApiClient() {
 		return apiClient;
 	}
 
-	public String getRefreshToken() {
-		return refreshToken;
-	}
-
 	public Token getToken() {
 		return token;
-	}
-
-	public void setAccessToken(String accessToken) {
-		this.accessToken = accessToken;
-	}
-
-	public void setRefreshToken(String refreshToken) {
-		this.refreshToken = refreshToken;
 	}
 
 	public void setToken(Token token) {
