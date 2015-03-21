@@ -93,7 +93,7 @@ public class Digiposte {
 
 	public JSONObject getDocs(String location, Integer index,
 			Integer maxResults, String sort, Boolean ascending)
-					throws MalformedURLException, UnirestException {
+			throws MalformedURLException, UnirestException {
 		final String url = "/documents"
 				+ (location != null ? ("/" + location) : "");
 		HttpRequest req = apiClient.get(url)
@@ -123,6 +123,25 @@ public class Digiposte {
 		// Map<String, List<String>> headers = res.getHeaders();
 		// logger.debug("headers : " + headers);
 		final JsonNode body = res.getBody();
+		final JSONObject result = body.getObject();
+		return result;
+	}
+
+	public JSONObject getDoc(String id) throws MalformedURLException,
+			UnirestException {
+		logger.debug("id : " + id);
+		final HttpResponse<JsonNode> res = apiClient.get("/document/{id}")
+				.routeParam("id", id).header("Accept", "application/json")
+				.header("Authorization", "Bearer " + accessToken)
+				.header("User-Token", dgpToken.accessToken).asJson();
+		logger.debug("res : " + res);
+		final int code = res.getStatus();
+		logger.debug("code : " + code);
+		if (code != 200) {
+			throw new HTTPException(code);
+		}
+		final JsonNode body = res.getBody();
+		logger.debug("body : " + body);
 		final JSONObject result = body.getObject();
 		return result;
 	}

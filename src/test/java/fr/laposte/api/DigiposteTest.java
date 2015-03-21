@@ -49,6 +49,8 @@ public class DigiposteTest {
 	private static final Logger logger = LoggerFactory
 			.getLogger(DigiposteTest.class);
 
+	private String docId;
+
 	@Test
 	public void testAuth() throws Exception {
 		dgp.auth(null, null, null);
@@ -135,6 +137,49 @@ public class DigiposteTest {
 		titleList.toArray(expectTitles);
 		logger.debug("expectTitles : " + Arrays.toString(expectTitles));
 		assertArrayEquals(expectTitles, titles);
+	}
+
+	@Test
+	public void testGetFirstDocSafebox() throws Exception {
+		if (dgp.getDgpToken().accessToken == null) {
+			dgp.auth(null, null, null);
+		}
+		final JSONObject result = dgp.getDocs("safe", 1, 1, null, null);
+		assertNotNull(result);
+		assertEquals(1, result.getInt("index"));
+		assertEquals(1, result.getInt("max_results"));
+		assertThat(result.get("documents"), instanceOf(JSONArray.class));
+		final JSONArray docs = (JSONArray) result.get("documents");
+		assertTrue(docs.length() > 0);
+		assertTrue(result.getInt("count") >= docs.length());
+		JSONObject doc = docs.getJSONObject(0);
+		logger.debug("doc : " + doc);
+		docId = doc.getString("id");
+		logger.debug("docId : " + docId);
+	}
+
+	@Test
+	public void testGetDocById() throws Exception {
+		if (dgp.getDgpToken().accessToken == null) {
+			dgp.auth(null, null, null);
+		}
+		String docId = System.getProperty("DIGIPOSTE_API_DOC_ID", this.docId);
+		if (docId == null) {
+			final JSONArray docs = (JSONArray) dgp.getDocs("safe", 1, 1, null,
+					null).get("documents");
+			docId = docs.getJSONObject(0).getString("id");
+		}
+		final JSONObject doc = dgp.getDoc(docId);
+		assertNotNull(doc);
+		logger.debug("doc : " + doc);
+		String[] names = new String[] { "geolocalized", "id", "category",
+				"filename", "title", "mimetype", "size", "creation_date",
+				"author_name", "document_logo", "location", "read", "shared",
+				"digishoot", "certified", "invoice", "eligible2ddoc",
+				"favorite", "user_tags", "sender_tags" };
+		for (String name : names) {
+			assertNotNull(doc.get(name));
+		}
 	}
 
 }
