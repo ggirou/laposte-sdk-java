@@ -15,6 +15,40 @@ The official La Poste Open API SDK for the Java language.
 
 More informations about Open API and La Poste (french) : [developer.laposte.fr](http://developer.laposte.fr/)
 
+## Installation
+
+### Maven 
+
+Add maven dependency to your pom.xml
+
+```xml
+<dependency>
+	<groupId>fr.laposte</groupId>
+	<artifactId>laposte-sdk</artifactId>
+	<version>0.0.1</version>
+</dependency>
+```
+
+## What's provided?
+
+The La Poste Open API developer kit provides some service classes that make API consumption easy.
+
+Available services :
+
+### LaPoste
+
+This is the main service, its main goal is to deal with Open API token.
+
+Have a look at [LaPoste api doc](http://laposteapi.github.io/laposte-sdk-js/classes/LaPoste.html) for more information.
+
+### [Digiposte](http://www.laposte.fr/particulier/produits/presentation/digiposte/vos-donnees-securisees-a-vie)
+
+Digiposte is a safebox web application, and an API provider of the Groupe La Poste.
+
+The Digiposte class exposes all the things you need to consume Digiposte APIs.
+
+Have a look at [Digiposte api doc](http://laposteapi.github.io/laposte-sdk-js/classes/Digiposte.html) for more information.
+
 ## Usage
 
 To use an exposed API (by example Digiposte), you first need to authenticate with LaPoste.auth method.
