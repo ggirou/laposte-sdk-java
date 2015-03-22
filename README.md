@@ -103,6 +103,10 @@ JSONObject doc = dgp.getDoc(docId);
 System.out.println("doc : " + doc);
 ```
 
+## API doc
+
+Complete API doc of the SDK : [laposteapi.github.io/laposte-sdk-java](http://laposteapi.github.io/laposte-sdk-java)
+
 ## License
 
 This SDK is distributed under the [MIT License](https://raw.githubusercontent.com/LaPosteApi/laposte-sdk-java/master/LICENSE).
