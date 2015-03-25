@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -25,60 +27,23 @@ import com.mashape.unirest.request.GetRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
 
 /**
- * 
+ *
  * This class is a helper tool for using La Poste Open API SDK.
- * 
+ *
  * @author openhoat
  *
  */
 public class LpSdk {
 
 	/**
-	 * 
-	 * API client exception.
 	 *
-	 */
-	public static class ApiException extends Exception {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 4935635089514341634L;
-		
-		private int statusCode;
-
-		public ApiException(Exception e) {
-			super(e);
-		}
-
-		public ApiException(String msg) {
-			super(msg);
-		}
-
-		public ApiException(int statusCode) {
-			super();
-			this.statusCode = statusCode;
-		}
-
-		public ApiException(int statusCode, String msg) {
-			super(msg);
-			this.statusCode = statusCode;
-		}
-
-		public int getStatusCode() {
-			return statusCode;
-		}
-	}
-
-	/**
-	 * 
 	 * REST client helper to use with La Poste Open APIs.
 	 *
 	 */
 	public static class ApiClient {
 
 		public static void init() throws KeyManagementException,
-				NoSuchAlgorithmException, KeyStoreException {
+		NoSuchAlgorithmException, KeyStoreException {
 			if ("false".equals(System.getenv("LAPOSTE_API_STRICT_SSL"))) {
 				Unirest.setHttpClient(makeClient());
 			}
@@ -115,86 +80,131 @@ public class LpSdk {
 		private final URL baseUrl;
 
 		/**
-		 * 
+		 *
 		 * Build an ApiClient instance based on the given API provider base URL
-		 * 
+		 *
 		 * @param baseUrl
 		 *            the base URL of the API provider
 		 * @throws MalformedURLException
+		 * @throws URISyntaxException
 		 */
-		public ApiClient(String baseUrl) throws MalformedURLException {
+		public ApiClient(String baseUrl) throws MalformedURLException,
+				URISyntaxException {
 			this.baseUrl = LpSdk.buildBaseUrl(baseUrl);
 			logger.debug("baseUrl : " + this.baseUrl);
 		}
 
 		/**
-		 * 
-		 * Build a HTTP GET request with the given API URL.
-		 * 
+		 *
+		 * Build a HTTP DELETE request with the given API URL.
+		 *
 		 * @param url
 		 * @return Unirest request
 		 * @throws MalformedURLException
+		 * @throws URISyntaxException
 		 * @see Unirest
 		 */
-		public GetRequest get(String url) throws MalformedURLException {
+		public HttpRequestWithBody delete(String url)
+				throws MalformedURLException, URISyntaxException {
+			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
+			logger.debug("POST " + apiUrl);
+			return Unirest.delete(apiUrl);
+		}
+
+		/**
+		 *
+		 * Build a HTTP GET request with the given API URL.
+		 *
+		 * @param url
+		 * @return Unirest request
+		 * @throws MalformedURLException
+		 * @throws URISyntaxException
+		 * @see Unirest
+		 */
+		public GetRequest get(String url) throws MalformedURLException,
+				URISyntaxException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
 			logger.debug("GET " + apiUrl);
 			return Unirest.get(apiUrl);
 		}
 
 		/**
-		 * 
+		 *
 		 * Build a HTTP POST request with the given API URL.
-		 * 
+		 *
 		 * @param url
 		 * @return Unirest request
 		 * @throws MalformedURLException
+		 * @throws URISyntaxException
 		 * @see Unirest
 		 */
 		public HttpRequestWithBody post(String url)
-				throws MalformedURLException {
+				throws MalformedURLException, URISyntaxException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
 			logger.debug("POST " + apiUrl);
 			return Unirest.post(apiUrl);
 		}
 
 		/**
-		 * 
+		 *
 		 * Build a HTTP PUT request with the given API URL.
-		 * 
+		 *
 		 * @param url
 		 * @return Unirest request
 		 * @throws MalformedURLException
+		 * @throws URISyntaxException
 		 * @see Unirest
 		 */
-		public HttpRequestWithBody put(String url) throws MalformedURLException {
+		public HttpRequestWithBody put(String url)
+				throws MalformedURLException, URISyntaxException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
 			logger.debug("POST " + apiUrl);
 			return Unirest.put(apiUrl);
 		}
 
-		/**
-		 * 
-		 * Build a HTTP DELETE request with the given API URL.
-		 * 
-		 * @param url
-		 * @return Unirest request
-		 * @throws MalformedURLException
-		 * @see Unirest
-		 */
-		public HttpRequestWithBody delete(String url)
-				throws MalformedURLException {
-			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
-			logger.debug("POST " + apiUrl);
-			return Unirest.delete(apiUrl);
-		}
-
 	}
 
 	/**
-	 * 
+	 *
+	 * API client exception.
+	 *
+	 */
+	public static class ApiException extends Exception {
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 4935635089514341634L;
+
+		private int statusCode;
+
+		public ApiException(Exception e) {
+			super(e);
+		}
+
+		public ApiException(int statusCode) {
+			super();
+			this.statusCode = statusCode;
+		}
+
+		public ApiException(int statusCode, String msg) {
+			super(msg);
+			this.statusCode = statusCode;
+		}
+
+		public ApiException(String msg) {
+			super(msg);
+		}
+
+		public int getStatusCode() {
+			return statusCode;
+		}
+	}
+
+	/**
+	 *
 	 * La Poste Open API SDK default values
-	 * 
+	 *
 	 */
 	public static interface Defaults {
 		public static final String LAPOSTE_API_BASE_URL = "https://api.laposte.fr/";
@@ -202,9 +212,9 @@ public class LpSdk {
 	};
 
 	/**
-	 * 
+	 *
 	 * La Poste Open API SDK supported environment variable names
-	 * 
+	 *
 	 */
 	public static interface Env {
 		public static final String LAPOSTE_API_BASE_URL = "LAPOSTE_API_BASE_URL";
@@ -221,12 +231,14 @@ public class LpSdk {
 	};
 
 	static String buildApiUrl(URL baseUrl, String url)
-			throws MalformedURLException {
-		return new URL(baseUrl, "." + url).toString();
+			throws MalformedURLException, URISyntaxException {
+		return new URI(new URL(baseUrl, "." + url).toString()).normalize()
+				.toString();
 	};
 
-	static URL buildBaseUrl(String baseUrl) throws MalformedURLException {
-		return new URL(baseUrl + "/");
+	static URL buildBaseUrl(String baseUrl) throws URISyntaxException,
+	MalformedURLException {
+		return new URI(baseUrl).normalize().toURL();
 	}
 
 	static String getVersion() {

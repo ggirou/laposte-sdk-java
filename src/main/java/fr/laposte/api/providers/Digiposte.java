@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -49,7 +50,7 @@ public class Digiposte {
 
 	private String accessToken;
 
-	public Digiposte() throws MalformedURLException {
+	public Digiposte() throws MalformedURLException, URISyntaxException {
 		final String baseUrl = System.getProperty(
 				LpSdk.Env.DIGIPOSTE_API_BASE_URL,
 				LpSdk.Defaults.DIGIPOSTE_API_BASE_URL);
@@ -68,10 +69,11 @@ public class Digiposte {
 	 *            the Digiposte account username
 	 * @param password
 	 *            the Digiposte account password
+	 * @throws URISyntaxException
 	 * @see Token
 	 */
 	public void auth(String accessToken, String username, String password)
-			throws MalformedURLException, ApiException {
+			throws MalformedURLException, ApiException, URISyntaxException {
 		if (accessToken == null) {
 			accessToken = System
 					.getProperty(LpSdk.Env.LAPOSTE_API_ACCESS_TOKEN);
@@ -85,7 +87,7 @@ public class Digiposte {
 		final JsonNode reqBody = new JsonNode("{\"credential\":{\"user\":\""
 				+ username + "\", \"password\":\"" + password + "\"}}");
 		try {
-			HttpResponse<JsonNode> res = apiClient.post("/login")
+			final HttpResponse<JsonNode> res = apiClient.post("/login")
 					.header("Content-Type", "application/json")
 					.header("Accept", "application/json")
 					.header("Authorization", "Bearer " + accessToken)
@@ -99,7 +101,7 @@ public class Digiposte {
 			final JSONObject result = body.getObject();
 			dgpToken.accessToken = result.getString("access_token");
 			dgpToken.refreshToken = result.getString("refresh_token");
-		} catch (UnirestException e) {
+		} catch (final UnirestException e) {
 			throw new ApiException(e);
 		}
 	}
@@ -118,11 +120,12 @@ public class Digiposte {
 	 * @param id
 	 *            the document id
 	 * @return the resulting JSON object
+	 * @throws URISyntaxException
 	 */
 	public JSONObject getDoc(String id) throws MalformedURLException,
-			ApiException {
+	ApiException, URISyntaxException {
 		try {
-			HttpResponse<JsonNode> res = apiClient.get("/document/{id}")
+			final HttpResponse<JsonNode> res = apiClient.get("/document/{id}")
 					.routeParam("id", id).header("Accept", "application/json")
 					.header("Authorization", "Bearer " + accessToken)
 					.header("User-Token", dgpToken.accessToken).asJson();
@@ -133,7 +136,7 @@ public class Digiposte {
 			final JsonNode body = res.getBody();
 			final JSONObject result = body.getObject();
 			return result;
-		} catch (UnirestException e) {
+		} catch (final UnirestException e) {
 			throw new ApiException(e);
 		}
 	}
@@ -153,10 +156,11 @@ public class Digiposte {
 	 *            the direction in which you want to sort the results, for the
 	 *            given field : true for ascending, false for descending
 	 * @return the resulting JSON object
+	 * @throws URISyntaxException
 	 */
 	public JSONObject getDocs(String location, Integer index,
 			Integer maxResults, String sort, Boolean ascending)
-			throws MalformedURLException, ApiException {
+					throws MalformedURLException, ApiException, URISyntaxException {
 		final String url = "/documents"
 				+ (location != null ? ("/" + location) : "");
 		HttpRequest req = apiClient.get(url)
@@ -177,7 +181,7 @@ public class Digiposte {
 					ascending.booleanValue() ? "ASCENDING" : "DESCENDING");
 		}
 		try {
-			HttpResponse<JsonNode> res = req.asJson();
+			final HttpResponse<JsonNode> res = req.asJson();
 			final int code = res.getStatus();
 			if (code != 200) {
 				throw new ApiException(code);
@@ -185,7 +189,7 @@ public class Digiposte {
 			final JsonNode body = res.getBody();
 			final JSONObject result = body.getObject();
 			return result;
-		} catch (UnirestException e) {
+		} catch (final UnirestException e) {
 			throw new ApiException(e);
 		}
 	}
@@ -198,10 +202,12 @@ public class Digiposte {
 	 * @return an array of bytes containing the binary data of the downloaded
 	 *         thumbnail
 	 * @throws IOException
+	 * @throws URISyntaxException
 	 */
-	public byte[] getDocThumbnail(String id) throws ApiException, IOException {
+	public byte[] getDocThumbnail(String id) throws ApiException, IOException,
+			URISyntaxException {
 		try {
-			HttpResponse<InputStream> res = apiClient
+			final HttpResponse<InputStream> res = apiClient
 					.get("/document/{id}/thumbnail").routeParam("id", id)
 					.header("Authorization", "Bearer " + accessToken)
 					.header("User-Token", dgpToken.accessToken).asBinary();
@@ -222,7 +228,7 @@ public class Digiposte {
 			}
 			result.flush();
 			return result.toByteArray();
-		} catch (UnirestException e) {
+		} catch (final UnirestException e) {
 			throw new ApiException(e);
 		}
 	}

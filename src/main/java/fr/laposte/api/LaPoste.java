@@ -1,6 +1,7 @@
 package fr.laposte.api;
 
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -13,14 +14,14 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import fr.laposte.api.LpSdk.ApiException;
 
 /**
- * 
+ *
  * This class provides general service about La Poste Open API.
  *
  */
 public class LaPoste {
 
 	/**
-	 * 
+	 *
 	 * Pojo container for La Poste token informations.
 	 *
 	 */
@@ -59,7 +60,7 @@ public class LaPoste {
 	private final LpSdk.ApiClient apiClient;
 	private Token token = new Token();
 
-	public LaPoste() throws MalformedURLException {
+	public LaPoste() throws MalformedURLException, URISyntaxException {
 		String baseUrl = System.getProperty(LpSdk.Env.LAPOSTE_API_BASE_URL);
 		if (baseUrl == null) {
 			baseUrl = LpSdk.Defaults.LAPOSTE_API_BASE_URL;
@@ -80,11 +81,12 @@ public class LaPoste {
 	 *            the developer account username
 	 * @param password
 	 *            the developer account password
+	 * @throws URISyntaxException
 	 * @see Token
 	 */
 	public void auth(String consumerKey, String consumerSecret,
 			String username, String password) throws MalformedURLException,
-			ApiException {
+			ApiException, URISyntaxException {
 		if (consumerKey == null) {
 			consumerKey = System
 					.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_KEY);
@@ -100,7 +102,7 @@ public class LaPoste {
 			password = System.getProperty(LpSdk.Env.LAPOSTE_API_PASSWORD);
 		}
 		try {
-			HttpResponse<JsonNode> res = apiClient.post("/oauth2/token")
+			final HttpResponse<JsonNode> res = apiClient.post("/oauth2/token")
 					.header("Accept", "application/json")
 					.field("client_id", consumerKey)
 					.field("client_secret", consumerSecret)
@@ -120,7 +122,7 @@ public class LaPoste {
 			token.scope = result.getString("scope");
 			token.type = result.getString("token_type");
 			token.expiresIn = result.getInt("expires_in");
-		} catch (UnirestException e) {
+		} catch (final UnirestException e) {
 			throw new ApiException(e);
 		}
 	}
@@ -146,10 +148,12 @@ public class LaPoste {
 	 *            the consumer secret
 	 * @param refreshToken
 	 *            the refresh token
+	 * @throws URISyntaxException
 	 * @see Token
 	 */
 	public void refreshToken(String consumerKey, String consumerSecret,
-			String refreshToken) throws MalformedURLException, ApiException {
+			String refreshToken) throws MalformedURLException, ApiException,
+			URISyntaxException {
 		if (consumerKey == null) {
 			consumerKey = System
 					.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_KEY);
@@ -167,7 +171,7 @@ public class LaPoste {
 		}
 		logger.debug("refreshToken : " + refreshToken);
 		try {
-			HttpResponse<JsonNode> res = apiClient.post("/oauth2/token")
+			final HttpResponse<JsonNode> res = apiClient.post("/oauth2/token")
 					.header("Accept", "application/json")
 					.field("client_id", consumerKey)
 					.field("client_secret", consumerSecret)
@@ -184,7 +188,7 @@ public class LaPoste {
 			token.scope = result.getString("scope");
 			token.type = result.getString("token_type");
 			token.expiresIn = result.getInt("expires_in");
-		} catch (UnirestException e) {
+		} catch (final UnirestException e) {
 			throw new ApiException(e);
 		}
 	}
