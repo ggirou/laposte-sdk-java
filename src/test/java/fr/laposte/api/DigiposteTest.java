@@ -11,7 +11,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -159,6 +158,22 @@ public class DigiposteTest {
 		final String[] expectTitles = new String[titleList.size()];
 		titleList.toArray(expectTitles);
 		assertArrayEquals(expectTitles, titles);
+	}
+
+	@Test
+	public void testGetDocThumnail() throws Exception {
+		if (dgp.getDgpToken().accessToken == null) {
+			dgp.auth(null, null, null);
+		}
+		String docId = System.getProperty("DIGIPOSTE_API_DOC_ID", this.docId);
+		if (docId == null) {
+			final JSONArray docs = (JSONArray) dgp.getDocs("safe", 1, 1, null,
+					null).get("documents");
+			docId = docs.getJSONObject(0).getString("id");
+		}
+		final byte[] content = dgp.getDocThumbnail(docId);
+		assertNotNull(content);
+		assertEquals(711, content.length);
 	}
 
 	@Test
