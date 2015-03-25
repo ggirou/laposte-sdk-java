@@ -69,11 +69,10 @@ public class Digiposte {
 	 *            the Digiposte account username
 	 * @param password
 	 *            the Digiposte account password
-	 * @throws URISyntaxException
 	 * @see Token
 	 */
 	public void auth(String accessToken, String username, String password)
-			throws MalformedURLException, ApiException, URISyntaxException {
+			throws MalformedURLException, ApiException {
 		if (accessToken == null) {
 			accessToken = System
 					.getProperty(LpSdk.Env.LAPOSTE_API_ACCESS_TOKEN);
@@ -120,10 +119,11 @@ public class Digiposte {
 	 * @param id
 	 *            the document id
 	 * @return the resulting JSON object
-	 * @throws URISyntaxException
+	 * @throws MalformedURLException
+	 * @throws ApiException
 	 */
 	public JSONObject getDoc(String id) throws MalformedURLException,
-	ApiException, URISyntaxException {
+			ApiException {
 		try {
 			final HttpResponse<JsonNode> res = apiClient.get("/document/{id}")
 					.routeParam("id", id).header("Accept", "application/json")
@@ -156,11 +156,12 @@ public class Digiposte {
 	 *            the direction in which you want to sort the results, for the
 	 *            given field : true for ascending, false for descending
 	 * @return the resulting JSON object
-	 * @throws URISyntaxException
+	 * @throws MalformedURLException
+	 * @throws ApiException
 	 */
 	public JSONObject getDocs(String location, Integer index,
 			Integer maxResults, String sort, Boolean ascending)
-					throws MalformedURLException, ApiException, URISyntaxException {
+			throws MalformedURLException, ApiException {
 		final String url = "/documents"
 				+ (location != null ? ("/" + location) : "");
 		HttpRequest req = apiClient.get(url)
@@ -201,11 +202,10 @@ public class Digiposte {
 	 *            the document id
 	 * @return an array of bytes containing the binary data of the downloaded
 	 *         thumbnail
+	 * @throws ApiException
 	 * @throws IOException
-	 * @throws URISyntaxException
 	 */
-	public byte[] getDocThumbnail(String id) throws ApiException, IOException,
-			URISyntaxException {
+	public byte[] getDocThumbnail(String id) throws ApiException, IOException {
 		try {
 			final HttpResponse<InputStream> res = apiClient
 					.get("/document/{id}/thumbnail").routeParam("id", id)

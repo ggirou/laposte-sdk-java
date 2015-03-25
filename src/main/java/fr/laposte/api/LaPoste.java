@@ -81,12 +81,13 @@ public class LaPoste {
 	 *            the developer account username
 	 * @param password
 	 *            the developer account password
-	 * @throws URISyntaxException
+	 * @throws MalformedURLException
+	 * @throws ApiException
 	 * @see Token
 	 */
 	public void auth(String consumerKey, String consumerSecret,
 			String username, String password) throws MalformedURLException,
-			ApiException, URISyntaxException {
+			ApiException {
 		if (consumerKey == null) {
 			consumerKey = System
 					.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_KEY);
@@ -148,12 +149,12 @@ public class LaPoste {
 	 *            the consumer secret
 	 * @param refreshToken
 	 *            the refresh token
-	 * @throws URISyntaxException
+	 * @throws MalformedURLException
+	 * @throws ApiException
 	 * @see Token
 	 */
 	public void refreshToken(String consumerKey, String consumerSecret,
-			String refreshToken) throws MalformedURLException, ApiException,
-			URISyntaxException {
+			String refreshToken) throws MalformedURLException, ApiException {
 		if (consumerKey == null) {
 			consumerKey = System
 					.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_KEY);

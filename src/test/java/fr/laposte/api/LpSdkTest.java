@@ -18,25 +18,29 @@ public class LpSdkTest extends LpSdk {
 			.getLogger(LpSdkTest.class);
 
 	@Test
-	public void testBuildApiUrl() throws MalformedURLException,
-			URISyntaxException {
-		String url = LpSdk.buildApiUrl(new URL("https://api.laposte.fr"),
-				"/my/resource");
-		assertEquals(new URL("https://api.laposte.fr/my/resource").toString(),
-				url);
+	public void testBuildApiUrl() throws MalformedURLException {
+		final String url = LpSdk.buildApiUrl(new URL("https://api.laposte.fr/my/"),
+				"/resource/{id}/content");
+		assertEquals("https://api.laposte.fr/my/resource/{id}/content", url);
 	}
 
 	@Test
 	public void testBuildBaseUrl() throws MalformedURLException,
 			URISyntaxException {
-		URL url = LpSdk.buildBaseUrl("https://api.laposte.fr");
+		final URL url = LpSdk.buildBaseUrl("https://api.laposte.fr");
 		assertEquals(new URL("https://api.laposte.fr"), url);
 	}
 
 	@Test
 	public void testGetVersion() {
-		String version = LpSdk.getVersion();
+		final String version = LpSdk.getVersion();
 		assertThat(version, matchesPattern("^\\d\\.\\d\\.\\d(-SNAPSHOT)?"));
+	}
+
+	@Test
+	public void testNormalizeUrl() throws MalformedURLException {
+		final String url = LpSdk.normalizeUrl("/my/resource/{id}/content");
+		assertEquals("/my/resource/{id}/content", url);
 	}
 
 }

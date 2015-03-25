@@ -12,7 +12,10 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContextBuilder;
@@ -43,7 +46,7 @@ public class LpSdk {
 	public static class ApiClient {
 
 		public static void init() throws KeyManagementException,
-		NoSuchAlgorithmException, KeyStoreException {
+				NoSuchAlgorithmException, KeyStoreException {
 			if ("false".equals(System.getenv("LAPOSTE_API_STRICT_SSL"))) {
 				Unirest.setHttpClient(makeClient());
 			}
@@ -101,11 +104,10 @@ public class LpSdk {
 		 * @param url
 		 * @return Unirest request
 		 * @throws MalformedURLException
-		 * @throws URISyntaxException
 		 * @see Unirest
 		 */
 		public HttpRequestWithBody delete(String url)
-				throws MalformedURLException, URISyntaxException {
+				throws MalformedURLException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
 			logger.debug("POST " + apiUrl);
 			return Unirest.delete(apiUrl);
@@ -118,11 +120,9 @@ public class LpSdk {
 		 * @param url
 		 * @return Unirest request
 		 * @throws MalformedURLException
-		 * @throws URISyntaxException
 		 * @see Unirest
 		 */
-		public GetRequest get(String url) throws MalformedURLException,
-				URISyntaxException {
+		public GetRequest get(String url) throws MalformedURLException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
 			logger.debug("GET " + apiUrl);
 			return Unirest.get(apiUrl);
@@ -135,11 +135,10 @@ public class LpSdk {
 		 * @param url
 		 * @return Unirest request
 		 * @throws MalformedURLException
-		 * @throws URISyntaxException
 		 * @see Unirest
 		 */
 		public HttpRequestWithBody post(String url)
-				throws MalformedURLException, URISyntaxException {
+				throws MalformedURLException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
 			logger.debug("POST " + apiUrl);
 			return Unirest.post(apiUrl);
@@ -152,11 +151,9 @@ public class LpSdk {
 		 * @param url
 		 * @return Unirest request
 		 * @throws MalformedURLException
-		 * @throws URISyntaxException
 		 * @see Unirest
 		 */
-		public HttpRequestWithBody put(String url)
-				throws MalformedURLException, URISyntaxException {
+		public HttpRequestWithBody put(String url) throws MalformedURLException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
 			logger.debug("POST " + apiUrl);
 			return Unirest.put(apiUrl);
@@ -231,15 +228,14 @@ public class LpSdk {
 	};
 
 	static String buildApiUrl(URL baseUrl, String url)
-			throws MalformedURLException, URISyntaxException {
-		return new URI(new URL(baseUrl, "." + url).toString()).normalize()
-				.toString();
-	};
-
-	static URL buildBaseUrl(String baseUrl) throws URISyntaxException,
-	MalformedURLException {
-		return new URI(baseUrl).normalize().toURL();
+			throws MalformedURLException {
+		return new URL(baseUrl, "." + normalizeUrl(url)).toString();
 	}
+
+	static URL buildBaseUrl(String baseUrl) throws MalformedURLException,
+			URISyntaxException {
+		return new URI(baseUrl).toURL();
+	};
 
 	static String getVersion() {
 		final String versionPropPath = "/version.properties";
@@ -255,6 +251,48 @@ public class LpSdk {
 		} catch (final IOException e) {
 			return "UNKNOWN";
 		}
+	}
+
+	static String normalizeUrl(String url) {
+		if ("".equals(url)) {
+			return url;
+		}
+		int slashes = 0;
+		while (slashes < url.length() && url.charAt(slashes) == '/') {
+			slashes++;
+		}
+		boolean isDir = (url.charAt(url.length() - 1) == '/');
+		final StringTokenizer st = new StringTokenizer(url, "/");
+		final LinkedList<String> clean = new LinkedList<String>();
+		while (st.hasMoreTokens()) {
+			final String token = st.nextToken();
+			if ("..".equals(token)) {
+				if (!clean.isEmpty() && !"..".equals(clean.getLast())) {
+					clean.removeLast();
+					if (!st.hasMoreTokens()) {
+						isDir = true;
+					}
+				} else {
+					clean.add("..");
+				}
+			} else if (!".".equals(token) && !"".equals(token)) {
+				clean.add(token);
+			}
+		}
+		final StringBuilder sb = new StringBuilder();
+		while (slashes-- > 0) {
+			sb.append('/');
+		}
+		for (final Iterator<String> it = clean.iterator(); it.hasNext();) {
+			sb.append(it.next());
+			if (it.hasNext()) {
+				sb.append('/');
+			}
+		}
+		if (isDir && sb.length() > 0 && sb.charAt(sb.length() - 1) != '/') {
+			sb.append('/');
+		}
+		return sb.toString();
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(LpSdk.class);
