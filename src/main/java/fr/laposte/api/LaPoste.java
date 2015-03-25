@@ -2,8 +2,6 @@ package fr.laposte.api;
 
 import java.net.MalformedURLException;
 
-import javax.xml.ws.http.HTTPException;
-
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,13 +10,40 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
+import fr.laposte.api.LpSdk.ApiException;
+
+/**
+ * 
+ * This class provides general service about La Poste Open API.
+ *
+ */
 public class LaPoste {
 
+	/**
+	 * 
+	 * Pojo container for La Poste token informations.
+	 *
+	 */
 	public static class Token {
+		/**
+		 * The access token value
+		 */
 		public String accessToken;
+		/**
+		 * The refresh token value
+		 */
 		public String refreshToken;
+		/**
+		 * The scope value of the access token
+		 */
 		public String scope;
+		/**
+		 * The type of token
+		 */
 		public String type;
+		/**
+		 * The access token validity duration in ms
+		 */
 		public int expiresIn;
 
 		@Override
@@ -42,13 +67,30 @@ public class LaPoste {
 		this.apiClient = new LpSdk.ApiClient(baseUrl);
 	}
 
-	public void auth(String clientId, String clientSecret, String username,
-			String password) throws MalformedURLException, UnirestException {
-		if (clientId == null) {
-			clientId = System.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_KEY);
+	/**
+	 * Authenticate a developer, and provide a token for La Poste Open API.
+	 * <p>
+	 * The resulting token is stored as "token" instance attribute.
+	 *
+	 * @param consumerKey
+	 *            the consumer key
+	 * @param consumerSecret
+	 *            the consumer secret
+	 * @param username
+	 *            the developer account username
+	 * @param password
+	 *            the developer account password
+	 * @see Token
+	 */
+	public void auth(String consumerKey, String consumerSecret,
+			String username, String password) throws MalformedURLException,
+			ApiException {
+		if (consumerKey == null) {
+			consumerKey = System
+					.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_KEY);
 		}
-		if (clientSecret == null) {
-			clientSecret = System
+		if (consumerSecret == null) {
+			consumerSecret = System
 					.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_SECRET);
 		}
 		if (username == null) {
@@ -57,45 +99,63 @@ public class LaPoste {
 		if (password == null) {
 			password = System.getProperty(LpSdk.Env.LAPOSTE_API_PASSWORD);
 		}
-		final HttpResponse<JsonNode> res = apiClient.post("/oauth2/token")
-				.header("Accept", "application/json")
-				.field("client_id", clientId)
-				.field("client_secret", clientSecret)
-				.field("grant_type", "password").field("username", username)
-				.field("password", password).asJson();
-		logger.debug("res : " + res);
-		final int code = res.getStatus();
-		logger.debug("code : " + code);
-		if (code != 200) {
-			throw new HTTPException(code);
+		try {
+			HttpResponse<JsonNode> res = apiClient.post("/oauth2/token")
+					.header("Accept", "application/json")
+					.field("client_id", consumerKey)
+					.field("client_secret", consumerSecret)
+					.field("grant_type", "password")
+					.field("username", username).field("password", password)
+					.asJson();
+			final int code = res.getStatus();
+			if (code != 200) {
+				throw new ApiException(code);
+			}
+			// Map<String, List<String>> headers = res.getHeaders();
+			// logger.debug("headers : " + headers);
+			final JsonNode body = res.getBody();
+			final JSONObject result = body.getObject();
+			token.accessToken = result.getString("access_token");
+			token.refreshToken = result.getString("refresh_token");
+			token.scope = result.getString("scope");
+			token.type = result.getString("token_type");
+			token.expiresIn = result.getInt("expires_in");
+		} catch (UnirestException e) {
+			throw new ApiException(e);
 		}
-		// Map<String, List<String>> headers = res.getHeaders();
-		// logger.debug("headers : " + headers);
-		final JsonNode body = res.getBody();
-		final JSONObject result = body.getObject();
-		token.accessToken = result.getString("access_token");
-		token.refreshToken = result.getString("refresh_token");
-		token.scope = result.getString("scope");
-		token.type = result.getString("token_type");
-		token.expiresIn = result.getInt("expires_in");
-		logger.debug("token : " + token);
 	}
 
-	public LpSdk.ApiClient getApiClient() {
-		return apiClient;
-	}
-
+	/**
+	 * Get the current token infos.
+	 *
+	 * @return the current token object instance
+	 * @see Token
+	 */
 	public Token getToken() {
 		return token;
 	}
 
-	public void refreshToken(String clientId, String clientSecret,
-			String refreshToken) throws MalformedURLException, UnirestException {
-		if (clientId == null) {
-			clientId = System.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_KEY);
+	/**
+	 * Refresh the La Poste Open API access token.
+	 * <p>
+	 * The resulting token is stored as "token" instance attribute.
+	 *
+	 * @param consumerKey
+	 *            the consumer key
+	 * @param consumerSecret
+	 *            the consumer secret
+	 * @param refreshToken
+	 *            the refresh token
+	 * @see Token
+	 */
+	public void refreshToken(String consumerKey, String consumerSecret,
+			String refreshToken) throws MalformedURLException, ApiException {
+		if (consumerKey == null) {
+			consumerKey = System
+					.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_KEY);
 		}
-		if (clientSecret == null) {
-			clientSecret = System
+		if (consumerSecret == null) {
+			consumerSecret = System
 					.getProperty(LpSdk.Env.LAPOSTE_API_CONSUMER_SECRET);
 		}
 		if (refreshToken == null) {
@@ -106,30 +166,36 @@ public class LaPoste {
 					.getProperty(LpSdk.Env.LAPOSTE_API_REFRESH_TOKEN);
 		}
 		logger.debug("refreshToken : " + refreshToken);
-		final HttpResponse<JsonNode> res = apiClient.post("/oauth2/token")
-				.header("Accept", "application/json")
-				.field("client_id", clientId)
-				.field("client_secret", clientSecret)
-				.field("grant_type", "refresh_token")
-				.field("refresh_token", refreshToken).asJson();
-		logger.debug("res : " + res);
-		final int code = res.getStatus();
-		logger.debug("code : " + code);
-		if (code != 200) {
-			throw new HTTPException(code);
+		try {
+			HttpResponse<JsonNode> res = apiClient.post("/oauth2/token")
+					.header("Accept", "application/json")
+					.field("client_id", consumerKey)
+					.field("client_secret", consumerSecret)
+					.field("grant_type", "refresh_token")
+					.field("refresh_token", refreshToken).asJson();
+			final int code = res.getStatus();
+			if (code != 200) {
+				throw new ApiException(code);
+			}
+			final JsonNode body = res.getBody();
+			final JSONObject result = body.getObject();
+			token.accessToken = result.getString("access_token");
+			token.refreshToken = result.getString("refresh_token");
+			token.scope = result.getString("scope");
+			token.type = result.getString("token_type");
+			token.expiresIn = result.getInt("expires_in");
+		} catch (UnirestException e) {
+			throw new ApiException(e);
 		}
-		// Map<String, List<String>> headers = res.getHeaders();
-		// logger.debug("headers : " + headers);
-		final JsonNode body = res.getBody();
-		final JSONObject result = body.getObject();
-		token.accessToken = result.getString("access_token");
-		token.refreshToken = result.getString("refresh_token");
-		token.scope = result.getString("scope");
-		token.type = result.getString("token_type");
-		token.expiresIn = result.getInt("expires_in");
-		logger.debug("token : " + token);
 	}
 
+	/**
+	 * Set the current token infos.
+	 *
+	 * @param token
+	 *            the token object to set
+	 * @see Token
+	 */
 	public void setToken(Token token) {
 		this.token = token;
 	}

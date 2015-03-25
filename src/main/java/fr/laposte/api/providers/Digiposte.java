@@ -1,8 +1,9 @@
 package fr.laposte.api.providers;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
-
-import javax.xml.ws.http.HTTPException;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -13,10 +14,22 @@ import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.HttpRequest;
 
+import fr.laposte.api.LaPoste.Token;
 import fr.laposte.api.LpSdk;
+import fr.laposte.api.LpSdk.ApiException;
 
+/**
+ *
+ * This class provides services of the Digiposte API.
+ *
+ */
 public class Digiposte {
 
+	/**
+	 *
+	 * Pojo container for Digiposte token informations.
+	 *
+	 */
 	public static class DgpToken {
 		public String accessToken;
 		public String refreshToken;
@@ -43,8 +56,22 @@ public class Digiposte {
 		this.apiClient = new LpSdk.ApiClient(baseUrl);
 	}
 
+	/**
+	 * Authenticate a Digiposte customer, and provide a token for Digiposte API
+	 * services.
+	 * <p>
+	 * The resulting token is stored as "token" instance attribute.
+	 *
+	 * @param accessToken
+	 *            the La Poste access token
+	 * @param username
+	 *            the Digiposte account username
+	 * @param password
+	 *            the Digiposte account password
+	 * @see Token
+	 */
 	public void auth(String accessToken, String username, String password)
-			throws MalformedURLException, UnirestException {
+			throws MalformedURLException, ApiException {
 		if (accessToken == null) {
 			accessToken = System
 					.getProperty(LpSdk.Env.LAPOSTE_API_ACCESS_TOKEN);
@@ -55,32 +82,26 @@ public class Digiposte {
 		if (password == null) {
 			password = System.getProperty(LpSdk.Env.DIGIPOSTE_API_PASSWORD);
 		}
-		logger.debug("accessToken : " + accessToken);
-		logger.debug("username : " + username);
-		logger.debug("password : " + password);
 		final JsonNode reqBody = new JsonNode("{\"credential\":{\"user\":\""
 				+ username + "\", \"password\":\"" + password + "\"}}");
-		logger.debug("reqBody : " + reqBody);
-		final HttpResponse<JsonNode> res = apiClient.post("/login")
-				.header("Content-Type", "application/json")
-				.header("Accept", "application/json")
-				.header("Authorization", "Bearer " + accessToken).body(reqBody)
-				.asJson();
-		logger.debug("res : " + res);
-		final int code = res.getStatus();
-		logger.debug("code : " + code);
-		if (code != 200) {
-			logger.debug("status : " + res.getStatusText());
-			throw new HTTPException(code);
+		try {
+			HttpResponse<JsonNode> res = apiClient.post("/login")
+					.header("Content-Type", "application/json")
+					.header("Accept", "application/json")
+					.header("Authorization", "Bearer " + accessToken)
+					.body(reqBody).asJson();
+			final int code = res.getStatus();
+			if (code != 200) {
+				throw new ApiException(code);
+			}
+			this.accessToken = accessToken;
+			final JsonNode body = res.getBody();
+			final JSONObject result = body.getObject();
+			dgpToken.accessToken = result.getString("access_token");
+			dgpToken.refreshToken = result.getString("refresh_token");
+		} catch (UnirestException e) {
+			throw new ApiException(e);
 		}
-		this.accessToken = accessToken;
-		// Map<String, List<String>> headers = res.getHeaders();
-		// logger.debug("headers : " + headers);
-		final JsonNode body = res.getBody();
-		final JSONObject result = body.getObject();
-		dgpToken.accessToken = result.getString("access_token");
-		dgpToken.refreshToken = result.getString("refresh_token");
-		logger.debug("dgpToken : " + dgpToken);
 	}
 
 	public LpSdk.ApiClient getApiClient() {
@@ -91,9 +112,51 @@ public class Digiposte {
 		return dgpToken;
 	}
 
+	/**
+	 * Get a document by id.
+	 *
+	 * @param id
+	 *            the document id
+	 * @return the resulting JSON object
+	 */
+	public JSONObject getDoc(String id) throws MalformedURLException,
+			ApiException {
+		try {
+			HttpResponse<JsonNode> res = apiClient.get("/document/{id}")
+					.routeParam("id", id).header("Accept", "application/json")
+					.header("Authorization", "Bearer " + accessToken)
+					.header("User-Token", dgpToken.accessToken).asJson();
+			final int code = res.getStatus();
+			if (code != 200) {
+				throw new ApiException(code);
+			}
+			final JsonNode body = res.getBody();
+			final JSONObject result = body.getObject();
+			return result;
+		} catch (UnirestException e) {
+			throw new ApiException(e);
+		}
+	}
+
+	/**
+	 * Get documents of the safebox.
+	 *
+	 * @param location
+	 *            the location of the documents (NULL, SAFE, INBOX, or TRASH)
+	 * @param index
+	 *            the index of the pagination
+	 * @param maxResults
+	 *            the maximum number of results returned
+	 * @param sort
+	 *            the field on which you want to sort the results
+	 * @param ascending
+	 *            the direction in which you want to sort the results, for the
+	 *            given field : true for ascending, false for descending
+	 * @return the resulting JSON object
+	 */
 	public JSONObject getDocs(String location, Integer index,
 			Integer maxResults, String sort, Boolean ascending)
-			throws MalformedURLException, UnirestException {
+			throws MalformedURLException, ApiException {
 		final String url = "/documents"
 				+ (location != null ? ("/" + location) : "");
 		HttpRequest req = apiClient.get(url)
@@ -113,37 +176,55 @@ public class Digiposte {
 			req = req.queryString("direction",
 					ascending.booleanValue() ? "ASCENDING" : "DESCENDING");
 		}
-		final HttpResponse<JsonNode> res = req.asJson();
-		logger.debug("res : " + res);
-		final int code = res.getStatus();
-		logger.debug("code : " + code);
-		if (code != 200) {
-			throw new HTTPException(code);
+		try {
+			HttpResponse<JsonNode> res = req.asJson();
+			final int code = res.getStatus();
+			if (code != 200) {
+				throw new ApiException(code);
+			}
+			final JsonNode body = res.getBody();
+			final JSONObject result = body.getObject();
+			return result;
+		} catch (UnirestException e) {
+			throw new ApiException(e);
 		}
-		// Map<String, List<String>> headers = res.getHeaders();
-		// logger.debug("headers : " + headers);
-		final JsonNode body = res.getBody();
-		final JSONObject result = body.getObject();
-		return result;
 	}
 
-	public JSONObject getDoc(String id) throws MalformedURLException,
-			UnirestException {
-		logger.debug("id : " + id);
-		final HttpResponse<JsonNode> res = apiClient.get("/document/{id}")
-				.routeParam("id", id).header("Accept", "application/json")
-				.header("Authorization", "Bearer " + accessToken)
-				.header("User-Token", dgpToken.accessToken).asJson();
-		logger.debug("res : " + res);
-		final int code = res.getStatus();
-		logger.debug("code : " + code);
-		if (code != 200) {
-			throw new HTTPException(code);
+	/**
+	 * Get a document thumbnail.
+	 *
+	 * @param id
+	 *            the document id
+	 * @return an array of bytes containing the binary data of the downloaded
+	 *         thumbnail
+	 * @throws IOException
+	 */
+	public byte[] getDocThumbnail(String id) throws ApiException, IOException {
+		try {
+			HttpResponse<InputStream> res = apiClient
+					.get("/document/{id}/thumbnail").routeParam("id", id)
+					.header("Authorization", "Bearer " + accessToken)
+					.header("User-Token", dgpToken.accessToken).asBinary();
+			final int code = res.getStatus();
+			if (code != 200) {
+				throw new ApiException(code);
+			}
+			final InputStream body = res.getRawBody();
+			final byte[] buffer = new byte[4096];
+			final ByteArrayOutputStream result = new ByteArrayOutputStream();
+			int numRead;
+			try {
+				while ((numRead = body.read(buffer)) > -1) {
+					result.write(buffer, 0, numRead);
+				}
+			} finally {
+				body.close();
+			}
+			result.flush();
+			return result.toByteArray();
+		} catch (UnirestException e) {
+			throw new ApiException(e);
 		}
-		final JsonNode body = res.getBody();
-		logger.debug("body : " + body);
-		final JSONObject result = body.getObject();
-		return result;
 	}
 
 	public void setToken(DgpToken token) {

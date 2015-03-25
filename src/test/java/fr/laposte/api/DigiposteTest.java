@@ -1,5 +1,7 @@
 package fr.laposte.api;
 
+import static com.googlecode.catchexception.CatchException.catchException;
+import static com.googlecode.catchexception.CatchException.caughtException;
 import static com.jcabi.matchers.RegexMatchers.matchesPattern;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -22,6 +24,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.laposte.api.LpSdk.ApiException;
 import fr.laposte.api.providers.Digiposte;
 
 public class DigiposteTest {
@@ -61,6 +64,29 @@ public class DigiposteTest {
 	}
 
 	@Test
+	public void testGetDocById() throws Exception {
+		if (dgp.getDgpToken().accessToken == null) {
+			dgp.auth(null, null, null);
+		}
+		String docId = System.getProperty("DIGIPOSTE_API_DOC_ID", this.docId);
+		if (docId == null) {
+			final JSONArray docs = (JSONArray) dgp.getDocs("safe", 1, 1, null,
+					null).get("documents");
+			docId = docs.getJSONObject(0).getString("id");
+		}
+		final JSONObject doc = dgp.getDoc(docId);
+		assertNotNull(doc);
+		final String[] names = new String[] { "geolocalized", "id", "category",
+				"filename", "title", "mimetype", "size", "creation_date",
+				"author_name", "document_logo", "location", "read", "shared",
+				"digishoot", "certified", "invoice", "eligible2ddoc",
+				"favorite", "user_tags", "sender_tags" };
+		for (final String name : names) {
+			assertNotNull(doc.get(name));
+		}
+	}
+
+	@Test
 	public void testGetDocs() throws Exception {
 		if (dgp.getDgpToken().accessToken == null) {
 			dgp.auth(null, null, null);
@@ -93,7 +119,6 @@ public class DigiposteTest {
 		}
 		final String[] titles = new String[titleList.size()];
 		titleList.toArray(titles);
-		logger.debug("titles : " + Arrays.toString(titles));
 		Collections.sort(titleList, new Comparator<String>() {
 
 			@Override
@@ -103,7 +128,6 @@ public class DigiposteTest {
 		});
 		final String[] expectTitles = new String[titleList.size()];
 		titleList.toArray(expectTitles);
-		logger.debug("expectTitles : " + Arrays.toString(expectTitles));
 		assertArrayEquals(expectTitles, titles);
 	}
 
@@ -125,7 +149,6 @@ public class DigiposteTest {
 		}
 		final String[] titles = new String[titleList.size()];
 		titleList.toArray(titles);
-		logger.debug("titles : " + Arrays.toString(titles));
 		Collections.sort(titleList, new Comparator<String>() {
 
 			@Override
@@ -135,7 +158,6 @@ public class DigiposteTest {
 		});
 		final String[] expectTitles = new String[titleList.size()];
 		titleList.toArray(expectTitles);
-		logger.debug("expectTitles : " + Arrays.toString(expectTitles));
 		assertArrayEquals(expectTitles, titles);
 	}
 
@@ -152,34 +174,20 @@ public class DigiposteTest {
 		final JSONArray docs = (JSONArray) result.get("documents");
 		assertTrue(docs.length() > 0);
 		assertTrue(result.getInt("count") >= docs.length());
-		JSONObject doc = docs.getJSONObject(0);
-		logger.debug("doc : " + doc);
+		final JSONObject doc = docs.getJSONObject(0);
 		docId = doc.getString("id");
-		logger.debug("docId : " + docId);
 	}
 
 	@Test
-	public void testGetDocById() throws Exception {
+	public void testTryToGetDocWithBadId() throws Exception {
 		if (dgp.getDgpToken().accessToken == null) {
 			dgp.auth(null, null, null);
 		}
-		String docId = System.getProperty("DIGIPOSTE_API_DOC_ID", this.docId);
-		if (docId == null) {
-			final JSONArray docs = (JSONArray) dgp.getDocs("safe", 1, 1, null,
-					null).get("documents");
-			docId = docs.getJSONObject(0).getString("id");
-		}
-		final JSONObject doc = dgp.getDoc(docId);
-		assertNotNull(doc);
-		logger.debug("doc : " + doc);
-		String[] names = new String[] { "geolocalized", "id", "category",
-				"filename", "title", "mimetype", "size", "creation_date",
-				"author_name", "document_logo", "location", "read", "shared",
-				"digishoot", "certified", "invoice", "eligible2ddoc",
-				"favorite", "user_tags", "sender_tags" };
-		for (String name : names) {
-			assertNotNull(doc.get(name));
-		}
+		final String docId = "badid";
+		catchException(dgp).getDoc(docId);
+		final Exception caughtException = caughtException();
+		assertTrue(caughtException instanceof ApiException);
+		final ApiException apiException = (ApiException) caughtException;
+		assertEquals(403, apiException.getStatusCode());
 	}
-
 }
