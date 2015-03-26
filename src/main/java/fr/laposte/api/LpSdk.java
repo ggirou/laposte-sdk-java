@@ -252,19 +252,25 @@ public class LpSdk {
 	};
 
 	static String getVersion() {
+		String version = "UNKNOWN";
 		final String versionPropPath = "/version.properties";
-		final InputStream is = LpSdk.class.getResourceAsStream(versionPropPath);
-		if (is == null) {
-			return "UNKNOWN";
-		}
-		final Properties props = new Properties();
+		InputStream is = null;
 		try {
+			is = LpSdk.class.getResourceAsStream(versionPropPath);
+			final Properties props = new Properties();
 			props.load(is);
-			is.close();
-			return (String) props.get("version");
+			version = props.getProperty("version");
 		} catch (final IOException e) {
-			return "UNKNOWN";
+		} finally {
+			if (is != null) {
+				try {
+					is.close();
+				} catch (final IOException e) {
+					logger.error(e.getMessage());
+				}
+			}
 		}
+		return version;
 	}
 
 	static String normalizeUrl(String url) {
