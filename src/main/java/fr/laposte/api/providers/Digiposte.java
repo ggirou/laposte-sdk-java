@@ -123,7 +123,7 @@ public class Digiposte {
 	 * @throws ApiException
 	 */
 	public JSONObject getDoc(String id) throws MalformedURLException,
-			ApiException {
+	ApiException {
 		try {
 			final HttpResponse<JsonNode> res = apiClient.get("/document/{id}")
 					.routeParam("id", id).header("Accept", "application/json")
@@ -161,7 +161,7 @@ public class Digiposte {
 	 */
 	public JSONObject getDocs(String location, Integer index,
 			Integer maxResults, String sort, Boolean ascending)
-			throws MalformedURLException, ApiException {
+					throws MalformedURLException, ApiException {
 		final String url = "/documents"
 				+ (location != null ? ("/" + location) : "");
 		HttpRequest req = apiClient.get(url)

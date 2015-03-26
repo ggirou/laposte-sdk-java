@@ -45,17 +45,17 @@ public class LpSdk {
 	 */
 	public static class ApiClient {
 
+		public static void init() throws KeyManagementException,
+		NoSuchAlgorithmException, KeyStoreException {
+			init(null);
+		}
+
 		public static void init(Boolean strictSSL)
 				throws KeyManagementException, NoSuchAlgorithmException,
 				KeyStoreException {
 			Unirest.setHttpClient(makeClient(strictSSL));
 			Unirest.setDefaultHeader("User-Agent",
 					"laposte-sdk/" + LpSdk.getVersion());
-		}
-
-		public static void init() throws KeyManagementException,
-				NoSuchAlgorithmException, KeyStoreException {
-			init(null);
 		}
 
 		public static void quit() throws IOException {
@@ -104,7 +104,7 @@ public class LpSdk {
 		 * @throws URISyntaxException
 		 */
 		public ApiClient(String baseUrl) throws MalformedURLException,
-				URISyntaxException {
+		URISyntaxException {
 			this.baseUrl = LpSdk.buildBaseUrl(baseUrl);
 			logger.debug("baseUrl : " + this.baseUrl);
 		}
@@ -121,7 +121,7 @@ public class LpSdk {
 		public HttpRequestWithBody delete(String url)
 				throws MalformedURLException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
-			logger.debug("POST " + apiUrl);
+			logger.debug("DELETE " + apiUrl);
 			return Unirest.delete(apiUrl);
 		}
 
@@ -167,7 +167,7 @@ public class LpSdk {
 		 */
 		public HttpRequestWithBody put(String url) throws MalformedURLException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
-			logger.debug("POST " + apiUrl);
+			logger.debug("PUT " + apiUrl);
 			return Unirest.put(apiUrl);
 		}
 
@@ -242,11 +242,12 @@ public class LpSdk {
 
 	static String buildApiUrl(URL baseUrl, String url)
 			throws MalformedURLException {
-		return new URL(baseUrl, "." + normalizeUrl(url)).toString();
+		return new URL(baseUrl, "." + normalizeUrl(url)).toString().replaceAll(
+				"\\./", "");
 	}
 
 	static URL buildBaseUrl(String baseUrl) throws MalformedURLException,
-			URISyntaxException {
+	URISyntaxException {
 		return new URI(baseUrl).toURL();
 	};
 

@@ -16,6 +16,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mashape.unirest.request.GetRequest;
+import com.mashape.unirest.request.HttpRequestWithBody;
+
 public class LpSdkTest extends LpSdk {
 
 	private static final Logger logger = LoggerFactory
@@ -23,7 +26,7 @@ public class LpSdkTest extends LpSdk {
 
 	@Test
 	public void testApiClientInit() throws KeyManagementException,
-	NoSuchAlgorithmException, KeyStoreException {
+			NoSuchAlgorithmException, KeyStoreException {
 		LpSdk.ApiClient.init(true);
 		LpSdk.ApiClient.init();
 	}
@@ -31,6 +34,46 @@ public class LpSdkTest extends LpSdk {
 	@Test
 	public void testApiClientQuit() throws IOException {
 		LpSdk.ApiClient.quit();
+	}
+
+	@Test
+	public void testApiClientGet() throws MalformedURLException,
+			URISyntaxException {
+		LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
+				"https://api.laposte.fr");
+		GetRequest req = apiClient.get("/my/resource/{id}/content");
+		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
+				req.getUrl());
+	}
+
+	@Test
+	public void testApiClientPost() throws MalformedURLException,
+			URISyntaxException {
+		LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
+				"https://api.laposte.fr");
+		HttpRequestWithBody req = apiClient.post("/my/resource/{id}/content");
+		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
+				req.getUrl());
+	}
+
+	@Test
+	public void testApiClientPut() throws MalformedURLException,
+			URISyntaxException {
+		LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
+				"https://api.laposte.fr");
+		HttpRequestWithBody req = apiClient.put("/my/resource/{id}/content");
+		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
+				req.getUrl());
+	}
+
+	@Test
+	public void testApiClientDelete() throws MalformedURLException,
+			URISyntaxException {
+		LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
+				"https://api.laposte.fr");
+		HttpRequestWithBody req = apiClient.delete("/my/resource/{id}/content");
+		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
+				req.getUrl());
 	}
 
 	@Test(expected = ApiException.class)
@@ -55,7 +98,7 @@ public class LpSdkTest extends LpSdk {
 
 	@Test
 	public void testBuildBaseUrl() throws MalformedURLException,
-	URISyntaxException {
+			URISyntaxException {
 		final URL url = LpSdk.buildBaseUrl("https://api.laposte.fr");
 		assertEquals(new URL("https://api.laposte.fr"), url);
 	}
