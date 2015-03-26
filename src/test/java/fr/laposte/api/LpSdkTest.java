@@ -25,10 +25,53 @@ public class LpSdkTest extends LpSdk {
 			.getLogger(LpSdkTest.class);
 
 	@Test
+	public void testApiClientDelete() throws MalformedURLException,
+	URISyntaxException {
+		final LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
+				"https://api.laposte.fr");
+		final HttpRequestWithBody req = apiClient
+				.delete("/my/resource/{id}/content");
+		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
+				req.getUrl());
+	}
+
+	@Test
+	public void testApiClientGet() throws MalformedURLException,
+	URISyntaxException {
+		final LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
+				"https://api.laposte.fr");
+		final GetRequest req = apiClient.get("/my/resource/{id}/content");
+		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
+				req.getUrl());
+	}
+
+	@Test
 	public void testApiClientInit() throws KeyManagementException,
-			NoSuchAlgorithmException, KeyStoreException {
+	NoSuchAlgorithmException, KeyStoreException {
 		LpSdk.ApiClient.init(true);
 		LpSdk.ApiClient.init();
+	}
+
+	@Test
+	public void testApiClientPost() throws MalformedURLException,
+	URISyntaxException {
+		final LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
+				"https://api.laposte.fr");
+		final HttpRequestWithBody req = apiClient
+				.post("/my/resource/{id}/content");
+		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
+				req.getUrl());
+	}
+
+	@Test
+	public void testApiClientPut() throws MalformedURLException,
+	URISyntaxException {
+		final LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
+				"https://api.laposte.fr");
+		final HttpRequestWithBody req = apiClient
+				.put("/my/resource/{id}/content");
+		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
+				req.getUrl());
 	}
 
 	@Test
@@ -36,49 +79,15 @@ public class LpSdkTest extends LpSdk {
 		LpSdk.ApiClient.quit();
 	}
 
-	@Test
-	public void testApiClientGet() throws MalformedURLException,
-			URISyntaxException {
-		LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
-				"https://api.laposte.fr");
-		GetRequest req = apiClient.get("/my/resource/{id}/content");
-		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
-				req.getUrl());
-	}
-
-	@Test
-	public void testApiClientPost() throws MalformedURLException,
-			URISyntaxException {
-		LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
-				"https://api.laposte.fr");
-		HttpRequestWithBody req = apiClient.post("/my/resource/{id}/content");
-		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
-				req.getUrl());
-	}
-
-	@Test
-	public void testApiClientPut() throws MalformedURLException,
-			URISyntaxException {
-		LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
-				"https://api.laposte.fr");
-		HttpRequestWithBody req = apiClient.put("/my/resource/{id}/content");
-		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
-				req.getUrl());
-	}
-
-	@Test
-	public void testApiClientDelete() throws MalformedURLException,
-			URISyntaxException {
-		LpSdk.ApiClient apiClient = new LpSdk.ApiClient(
-				"https://api.laposte.fr");
-		HttpRequestWithBody req = apiClient.delete("/my/resource/{id}/content");
-		assertEquals("https://api.laposte.fr/my/resource/{id}/content",
-				req.getUrl());
-	}
-
 	@Test(expected = ApiException.class)
 	public void testApiException() throws ApiException {
 		throw new LpSdk.ApiException(new Exception());
+	}
+
+	@Test
+	public void testApiExceptionMsg() {
+		final ApiException apiException = new ApiException("internal error");
+		assertEquals("internal error", apiException.getMessage());
 	}
 
 	@Test
@@ -98,7 +107,7 @@ public class LpSdkTest extends LpSdk {
 
 	@Test
 	public void testBuildBaseUrl() throws MalformedURLException,
-			URISyntaxException {
+	URISyntaxException {
 		final URL url = LpSdk.buildBaseUrl("https://api.laposte.fr");
 		assertEquals(new URL("https://api.laposte.fr"), url);
 	}
