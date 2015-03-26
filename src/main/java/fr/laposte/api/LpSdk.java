@@ -45,35 +45,47 @@ public class LpSdk {
 	 */
 	public static class ApiClient {
 
-		public static void init() throws KeyManagementException,
-				NoSuchAlgorithmException, KeyStoreException {
-			if ("false".equals(System.getenv("LAPOSTE_API_STRICT_SSL"))) {
-				Unirest.setHttpClient(makeClient());
-			}
+		public static void init(Boolean strictSSL)
+				throws KeyManagementException, NoSuchAlgorithmException,
+				KeyStoreException {
+			Unirest.setHttpClient(makeClient(strictSSL));
 			Unirest.setDefaultHeader("User-Agent",
 					"laposte-sdk/" + LpSdk.getVersion());
+		}
+
+		public static void init() throws KeyManagementException,
+				NoSuchAlgorithmException, KeyStoreException {
+			init(null);
 		}
 
 		public static void quit() throws IOException {
 			Unirest.shutdown();
 		}
 
-		private static CloseableHttpClient makeClient()
+		private static CloseableHttpClient makeClient(Boolean strictSSL)
 				throws NoSuchAlgorithmException, KeyStoreException,
 				KeyManagementException {
-			final SSLContextBuilder builder = new SSLContextBuilder();
+			if (strictSSL == null) {
+				strictSSL = !("false".equals(System
+						.getenv(LpSdk.Env.LAPOSTE_API_STRICT_SSL)));
+			}
 			CloseableHttpClient httpclient = null;
-			builder.loadTrustMaterial(null, new TrustStrategy() {
-				@Override
-				public boolean isTrusted(X509Certificate[] chain,
-						String authType) throws CertificateException {
-					return true;
-				}
-			});
-			final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-					builder.build());
-			httpclient = HttpClients.custom().setSSLSocketFactory(sslsf)
-					.build();
+			if (strictSSL) {
+				httpclient = HttpClients.createDefault();
+			} else {
+				final SSLContextBuilder builder = new SSLContextBuilder();
+				builder.loadTrustMaterial(null, new TrustStrategy() {
+					@Override
+					public boolean isTrusted(X509Certificate[] chain,
+							String authType) throws CertificateException {
+						return true;
+					}
+				});
+				final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+						builder.build());
+				httpclient = HttpClients.custom().setSSLSocketFactory(sslsf)
+						.build();
+			}
 			return httpclient;
 		}
 
@@ -214,6 +226,7 @@ public class LpSdk {
 	 *
 	 */
 	public static interface Env {
+		public static final String LAPOSTE_API_STRICT_SSL = "LAPOSTE_API_STRICT_SSL";
 		public static final String LAPOSTE_API_BASE_URL = "LAPOSTE_API_BASE_URL";
 		public static final String LAPOSTE_API_CONSUMER_KEY = "LAPOSTE_API_CONSUMER_KEY";
 		public static final String LAPOSTE_API_CONSUMER_SECRET = "LAPOSTE_API_CONSUMER_SECRET";

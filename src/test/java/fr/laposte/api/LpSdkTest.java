@@ -4,9 +4,13 @@ import static com.jcabi.matchers.RegexMatchers.matchesPattern;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -18,15 +22,40 @@ public class LpSdkTest extends LpSdk {
 			.getLogger(LpSdkTest.class);
 
 	@Test
+	public void testApiClientInit() throws KeyManagementException,
+	NoSuchAlgorithmException, KeyStoreException {
+		LpSdk.ApiClient.init(true);
+		LpSdk.ApiClient.init();
+	}
+
+	@Test
+	public void testApiClientQuit() throws IOException {
+		LpSdk.ApiClient.quit();
+	}
+
+	@Test(expected = ApiException.class)
+	public void testApiException() throws ApiException {
+		throw new LpSdk.ApiException(new Exception());
+	}
+
+	@Test
+	public void testApiExceptionStatusCodeMsg() {
+		final ApiException apiException = new ApiException(500,
+				"internal error");
+		assertEquals(500, apiException.getStatusCode());
+		assertEquals("internal error", apiException.getMessage());
+	}
+
+	@Test
 	public void testBuildApiUrl() throws MalformedURLException {
-		final String url = LpSdk.buildApiUrl(new URL("https://api.laposte.fr/my/"),
-				"/resource/{id}/content");
+		final String url = LpSdk.buildApiUrl(new URL(
+				"https://api.laposte.fr/my/"), "/resource/{id}/content");
 		assertEquals("https://api.laposte.fr/my/resource/{id}/content", url);
 	}
 
 	@Test
 	public void testBuildBaseUrl() throws MalformedURLException,
-			URISyntaxException {
+	URISyntaxException {
 		final URL url = LpSdk.buildBaseUrl("https://api.laposte.fr");
 		assertEquals(new URL("https://api.laposte.fr"), url);
 	}
@@ -42,5 +71,4 @@ public class LpSdkTest extends LpSdk {
 		final String url = LpSdk.normalizeUrl("/my/resource/{id}/content");
 		assertEquals("/my/resource/{id}/content", url);
 	}
-
 }
