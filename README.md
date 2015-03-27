@@ -105,7 +105,7 @@ System.out.println("doc : " + doc);
 
 ## API doc
 
-Complete API doc of the SDK : [laposteapi.github.io/laposte-sdk-java](http://laposteapi.github.io/laposte-sdk-java)
+Full documentation : [laposteapi.github.io/laposte-sdk-java](http://laposteapi.github.io/laposte-sdk-java)
 
 ## License
 
