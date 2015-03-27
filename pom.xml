@@ -4,7 +4,7 @@
 	<groupId>fr.laposte.api</groupId>
 	<artifactId>laposte-sdk</artifactId>
 	<packaging>jar</packaging>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>laposte-sdk</name>
 	<description>Developer kit to consume La Poste open APIs using the Java language.</description>
 	<url>https://github.com/LaPosteApi/laposte-sdk-java</url>
