@@ -46,9 +46,12 @@ public class Digiposte {
 			.getLogger(Digiposte.class);
 
 	private final LpSdk.ApiClient apiClient;
+
 	private DgpToken dgpToken = new DgpToken();
 
 	private String accessToken;
+
+	private String username;
 
 	public Digiposte() throws MalformedURLException, URISyntaxException {
 		final String baseUrl = System.getProperty(
@@ -96,6 +99,7 @@ public class Digiposte {
 				throw new ApiException(code);
 			}
 			this.accessToken = accessToken;
+			this.username = username;
 			final JsonNode body = res.getBody();
 			final JSONObject result = body.getObject();
 			dgpToken.accessToken = result.getString("access_token");
@@ -231,6 +235,71 @@ public class Digiposte {
 		} catch (final UnirestException e) {
 			throw new ApiException(e);
 		}
+	}
+
+	/**
+	 * Get the user profile.
+	 *
+	 * @return the resulting JSON object
+	 * @throws MalformedURLException
+	 * @throws ApiException
+	 */
+	public JSONObject getProfile() throws MalformedURLException, ApiException {
+		try {
+			final HttpResponse<JsonNode> res = apiClient.get("/profile")
+					.header("Accept", "application/json")
+					.header("Authorization", "Bearer " + accessToken)
+					.header("User-Token", dgpToken.accessToken).asJson();
+			final int code = res.getStatus();
+			if (code != 200) {
+				throw new ApiException(code);
+			}
+			final JsonNode body = res.getBody();
+			final JSONObject result = body.getObject();
+			return result;
+		} catch (final UnirestException e) {
+			throw new ApiException(e);
+		}
+	}
+
+	/**
+	 * Get the avatar of the user profile.
+	 *
+	 * @return an array of bytes containing the binary data of the downloaded
+	 *         avatar
+	 * @throws ApiException
+	 * @throws IOException
+	 */
+	public byte[] getProfileAvatar() throws ApiException, IOException {
+		try {
+			final HttpResponse<InputStream> res = apiClient
+					.get("/profile/avatar")
+					.header("Authorization", "Bearer " + accessToken)
+					.header("User-Token", dgpToken.accessToken).asBinary();
+			final int code = res.getStatus();
+			if (code != 200) {
+				throw new ApiException(code);
+			}
+			final InputStream body = res.getRawBody();
+			final byte[] buffer = new byte[4096];
+			final ByteArrayOutputStream result = new ByteArrayOutputStream();
+			int numRead;
+			try {
+				while ((numRead = body.read(buffer)) > -1) {
+					result.write(buffer, 0, numRead);
+				}
+			} finally {
+				body.close();
+			}
+			result.flush();
+			return result.toByteArray();
+		} catch (final UnirestException e) {
+			throw new ApiException(e);
+		}
+	}
+
+	public String getUsername() {
+		return username;
 	}
 
 	public void setToken(DgpToken token) {
