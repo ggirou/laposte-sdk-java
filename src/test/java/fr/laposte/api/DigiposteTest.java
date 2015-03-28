@@ -212,12 +212,12 @@ public class DigiposteTest {
 		for (final String name : names) {
 			assertNotNull(profile.get(name));
 		}
-		assertEquals("MR", profile.get("title"));
-		assertEquals("digiposte", profile.get("first_name"));
-		assertEquals("digiposte", profile.get("last_name"));
-		assertEquals(dgp.getUsername(), profile.get("login"));
-		assertEquals("PERSON", profile.get("user_type"));
-		assertEquals("VALID", profile.get("status"));
+		assertEquals("MR", profile.getString("title"));
+		assertEquals("digiposte", profile.getString("first_name"));
+		assertEquals("digiposte", profile.getString("last_name"));
+		assertEquals(dgp.getUsername(), profile.getString("login"));
+		assertEquals("PERSON", profile.getString("user_type"));
+		assertEquals("VALID", profile.getString("status"));
 		assertTrue(profile.getInt("space_used") > 0);
 		assertTrue(profile.getInt("space_free") > 0);
 		assertTrue(profile.getInt("space_max") > 0);
@@ -233,6 +233,17 @@ public class DigiposteTest {
 		final byte[] content = dgp.getProfileAvatar();
 		assertNotNull(content);
 		assertEquals(11165, content.length);
+	}
+
+	@Test
+	public void testGetTou() throws Exception {
+		if (dgp.getDgpToken().accessToken == null) {
+			dgp.auth(null, null, null);
+		}
+		final JSONObject result = dgp.getTou();
+		assertNotNull(result);
+		assertNotNull(result.getString("version"));
+		assertNotNull(result.getString("href"));
 	}
 
 	@Test

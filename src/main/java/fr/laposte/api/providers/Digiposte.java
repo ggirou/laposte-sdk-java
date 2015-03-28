@@ -127,7 +127,7 @@ public class Digiposte {
 	 * @throws ApiException
 	 */
 	public JSONObject getDoc(String id) throws MalformedURLException,
-	ApiException {
+			ApiException {
 		try {
 			final HttpResponse<JsonNode> res = apiClient.get("/document/{id}")
 					.routeParam("id", id).header("Accept", "application/json")
@@ -165,7 +165,7 @@ public class Digiposte {
 	 */
 	public JSONObject getDocs(String location, Integer index,
 			Integer maxResults, String sort, Boolean ascending)
-					throws MalformedURLException, ApiException {
+			throws MalformedURLException, ApiException {
 		final String url = "/documents"
 				+ (location != null ? ("/" + location) : "");
 		HttpRequest req = apiClient.get(url)
@@ -293,6 +293,31 @@ public class Digiposte {
 			}
 			result.flush();
 			return result.toByteArray();
+		} catch (final UnirestException e) {
+			throw new ApiException(e);
+		}
+	}
+
+	/**
+	 * Get the terms of use.
+	 *
+	 * @return the resulting JSON object
+	 * @throws MalformedURLException
+	 * @throws ApiException
+	 */
+	public JSONObject getTou() throws MalformedURLException, ApiException {
+		try {
+			final HttpResponse<JsonNode> res = apiClient.get("/cgu")
+					.header("Accept", "application/json")
+					.header("Authorization", "Bearer " + accessToken)
+					.header("User-Token", dgpToken.accessToken).asJson();
+			final int code = res.getStatus();
+			if (code != 200) {
+				throw new ApiException(code);
+			}
+			final JsonNode body = res.getBody();
+			final JSONObject result = body.getObject();
+			return result;
 		} catch (final UnirestException e) {
 			throw new ApiException(e);
 		}
