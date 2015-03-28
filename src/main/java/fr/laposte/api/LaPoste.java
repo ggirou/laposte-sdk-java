@@ -61,9 +61,14 @@ public class LaPoste {
 	private Token token = new Token();
 
 	public LaPoste() throws MalformedURLException, URISyntaxException {
-		String baseUrl = System.getProperty(LpSdk.Env.LAPOSTE_API_BASE_URL);
+		this(null);
+	}
+
+	public LaPoste(String baseUrl) throws MalformedURLException,
+	URISyntaxException {
 		if (baseUrl == null) {
-			baseUrl = LpSdk.Defaults.LAPOSTE_API_BASE_URL;
+			baseUrl = System.getProperty(LpSdk.Env.LAPOSTE_API_BASE_URL,
+					LpSdk.Defaults.LAPOSTE_API_BASE_URL);
 		}
 		this.apiClient = new LpSdk.ApiClient(baseUrl);
 	}

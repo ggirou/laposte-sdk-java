@@ -46,7 +46,7 @@ public class LpSdk {
 	public static class ApiClient {
 
 		public static void init() throws KeyManagementException,
-				NoSuchAlgorithmException, KeyStoreException {
+		NoSuchAlgorithmException, KeyStoreException {
 			init(null);
 		}
 
@@ -104,7 +104,7 @@ public class LpSdk {
 		 * @throws URISyntaxException
 		 */
 		public ApiClient(String baseUrl) throws MalformedURLException,
-				URISyntaxException {
+		URISyntaxException {
 			this.baseUrl = LpSdk.buildBaseUrl(baseUrl);
 			logger.debug("baseUrl : " + this.baseUrl);
 		}
@@ -208,6 +208,11 @@ public class LpSdk {
 		public int getStatusCode() {
 			return statusCode;
 		}
+
+		@Override
+		public String toString() {
+			return "ApiException [statusCode=" + statusCode + "]";
+		}
 	}
 
 	/**
@@ -247,7 +252,7 @@ public class LpSdk {
 	}
 
 	static URL buildBaseUrl(String baseUrl) throws MalformedURLException,
-			URISyntaxException {
+	URISyntaxException {
 		return new URI(baseUrl).toURL();
 	};
 
