@@ -7,6 +7,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -191,6 +192,47 @@ public class DigiposteTest {
 		assertTrue(result.getInt("count") >= docs.length());
 		final JSONObject doc = docs.getJSONObject(0);
 		docId = doc.getString("id");
+	}
+
+	@Test
+	public void testGetProfile() throws Exception {
+		if (dgp.getDgpToken().accessToken == null) {
+			dgp.auth(null, null, null);
+		}
+		final JSONObject profile = dgp.getProfile();
+		assertNotNull(profile);
+		final String[] names = new String[] { "id", "title", "first_name",
+				"last_name", "date_of_birth", "id_xiti", "login", "user_type",
+				"status", "space_used", "space_free", "space_max",
+				"space_not_computed", "author_name", "support_available",
+				"tos_version", "tos_updated_at", "share_space_status",
+				"partial_account", "basic_user", "offer_pid",
+				"offer_updated_at", "show2ddoc", "idn_valid",
+				"last_connexion_date", "completion" };
+		for (final String name : names) {
+			assertNotNull(profile.get(name));
+		}
+		assertEquals("MR", profile.get("title"));
+		assertEquals("digiposte", profile.get("first_name"));
+		assertEquals("digiposte", profile.get("last_name"));
+		assertEquals(dgp.getUsername(), profile.get("login"));
+		assertEquals("PERSON", profile.get("user_type"));
+		assertEquals("VALID", profile.get("status"));
+		assertTrue(profile.getInt("space_used") > 0);
+		assertTrue(profile.getInt("space_free") > 0);
+		assertTrue(profile.getInt("space_max") > 0);
+		assertFalse(profile.getBoolean("partial_account"));
+		assertTrue(profile.getBoolean("basic_user"));
+	}
+
+	@Test
+	public void testGetProfileAvatar() throws Exception {
+		if (dgp.getDgpToken().accessToken == null) {
+			dgp.auth(null, null, null);
+		}
+		final byte[] content = dgp.getProfileAvatar();
+		assertNotNull(content);
+		assertEquals(11165, content.length);
 	}
 
 	@Test
