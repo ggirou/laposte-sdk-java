@@ -1,10 +1,10 @@
-package fr.laposte.api;
+package fr.laposte.api.providers;
 
 import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
 import static com.jcabi.matchers.RegexMatchers.matchesPattern;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -24,6 +24,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.laposte.api.LaPoste;
+import fr.laposte.api.LpSdk;
 import fr.laposte.api.LpSdk.ApiException;
 import fr.laposte.api.providers.Digiposte;
 
@@ -97,8 +99,8 @@ public class DigiposteTest {
 		assertEquals(10, result.getInt("max_results"));
 		assertThat(result.get("documents"), instanceOf(JSONArray.class));
 		final JSONArray docs = (JSONArray) result.get("documents");
-		assertTrue(docs.length() > 0);
-		assertTrue(result.getInt("count") >= docs.length());
+		assertThat(docs.length(), greaterThan(0));
+		assertThat(result.getInt("count"), greaterThanOrEqualTo(docs.length()));
 	}
 
 	@Test
@@ -110,8 +112,8 @@ public class DigiposteTest {
 		assertNotNull(result);
 		assertThat(result.get("documents"), instanceOf(JSONArray.class));
 		final JSONArray docs = (JSONArray) result.get("documents");
-		assertTrue(docs.length() > 0);
-		assertTrue(result.getInt("count") >= docs.length());
+		assertThat(docs.length(), greaterThan(0));
+		assertThat(result.getInt("count"), greaterThanOrEqualTo(docs.length()));
 		final List<String> titleList = new ArrayList<String>();
 		for (int i = 0; i < docs.length(); i++) {
 			final JSONObject doc = docs.getJSONObject(i);
@@ -140,8 +142,8 @@ public class DigiposteTest {
 		assertNotNull(result);
 		assertThat(result.get("documents"), instanceOf(JSONArray.class));
 		final JSONArray docs = (JSONArray) result.get("documents");
-		assertTrue(docs.length() > 0);
-		assertTrue(result.getInt("count") >= docs.length());
+		assertThat(docs.length(), greaterThan(0));
+		assertThat(result.getInt("count"), greaterThanOrEqualTo(docs.length()));
 		final List<String> titleList = new ArrayList<String>();
 		for (int i = 0; i < docs.length(); i++) {
 			final JSONObject doc = docs.getJSONObject(i);
@@ -188,8 +190,8 @@ public class DigiposteTest {
 		assertEquals(1, result.getInt("max_results"));
 		assertThat(result.get("documents"), instanceOf(JSONArray.class));
 		final JSONArray docs = (JSONArray) result.get("documents");
-		assertTrue(docs.length() > 0);
-		assertTrue(result.getInt("count") >= docs.length());
+		assertThat(docs.length(), greaterThan(0));
+		assertThat(result.getInt("count"), greaterThanOrEqualTo(docs.length()));
 		final JSONObject doc = docs.getJSONObject(0);
 		docId = doc.getString("id");
 	}
@@ -218,9 +220,9 @@ public class DigiposteTest {
 		assertEquals(dgp.getUsername(), profile.getString("login"));
 		assertEquals("PERSON", profile.getString("user_type"));
 		assertEquals("VALID", profile.getString("status"));
-		assertTrue(profile.getInt("space_used") > 0);
-		assertTrue(profile.getInt("space_free") > 0);
-		assertTrue(profile.getInt("space_max") > 0);
+		assertThat(profile.getInt("space_used"), greaterThan(0));
+		assertThat(profile.getInt("space_free"), greaterThan(0));
+		assertThat(profile.getInt("space_max"), greaterThan(0));
 		assertFalse(profile.getBoolean("partial_account"));
 		assertTrue(profile.getBoolean("basic_user"));
 	}
@@ -232,7 +234,7 @@ public class DigiposteTest {
 		}
 		final byte[] content = dgp.getProfileAvatar();
 		assertNotNull(content);
-		assertEquals(11165, content.length);
+		assertThat(content.length, greaterThan(0));
 	}
 
 	@Test
