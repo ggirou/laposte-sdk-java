@@ -4,8 +4,8 @@ import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
 import static com.jcabi.matchers.RegexMatchers.matchesPattern;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
-import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -42,15 +42,18 @@ public class LaPosteTest {
 		lp.auth(null, null, null, null);
 		final LaPoste.Token token = lp.getToken();
 		assertNotNull(token);
-		assertThat(token.accessToken, matchesPattern("\\w+"));
-		assertThat(token.refreshToken, matchesPattern("\\w+"));
-		assertEquals("default", token.scope);
-		assertEquals("Bearer", token.type);
-		assertThat(Integer.valueOf(token.expiresIn), greaterThan(0));
-		assertEquals("Token [accessToken=" + token.accessToken
-				+ ", refreshToken=" + token.refreshToken + ", scope="
-				+ token.scope + ", type=" + token.type + ", expiresIn="
-				+ token.expiresIn + "]", token.toString());
+		assertThat(token.getAccessToken(), matchesPattern("\\w+"));
+		assertThat(token.getRefreshToken(), matchesPattern("\\w+"));
+		assertEquals("default", token.getScope());
+		assertEquals("Bearer", token.getType());
+		assertThat(token.getExpiresIn(), greaterThan(0));
+		assertThat(token.validityTime(), greaterThan(0L));
+		assertTrue(token.isValid());
+		assertEquals("Token [accessToken=" + token.getAccessToken()
+				+ ", refreshToken=" + token.getRefreshToken() + ", scope="
+				+ token.getScope() + ", type=" + token.getType()
+				+ ", expiresIn=" + token.getExpiresIn() + ", creationTime="
+				+ token.getCreationTime() + "]", token.toString());
 	}
 
 	@Test
@@ -76,18 +79,25 @@ public class LaPosteTest {
 
 	@Test
 	public void testRefresh() throws Exception {
-		if (lp.getToken().refreshToken == null) {
+		if (lp.getToken().getRefreshToken() == null) {
 			lp.auth(null, null, null, null);
 		}
 		lp.refreshToken(null, null, null);
 		final LaPoste.Token token = lp.getToken();
 		assertNotNull(token);
 		assertThat(token, instanceOf(LaPoste.Token.class));
-		assertThat(token.accessToken, matchesPattern("\\w+"));
-		assertThat(token.refreshToken, matchesPattern("\\w+"));
-		assertEquals("default", token.scope);
-		assertEquals("Bearer", token.type);
-		assertThat(Integer.valueOf(token.expiresIn), greaterThan(0));
+		assertThat(token.getAccessToken(), matchesPattern("\\w+"));
+		assertThat(token.getRefreshToken(), matchesPattern("\\w+"));
+		assertEquals("default", token.getScope());
+		assertEquals("Bearer", token.getType());
+		assertThat(token.getExpiresIn(), greaterThan(0));
+		assertThat(token.validityTime(), greaterThan(0L));
+		assertTrue(token.isValid());
+		assertEquals("Token [accessToken=" + token.getAccessToken()
+				+ ", refreshToken=" + token.getRefreshToken() + ", scope="
+				+ token.getScope() + ", type=" + token.getType()
+				+ ", expiresIn=" + token.getExpiresIn() + ", creationTime="
+				+ token.getCreationTime() + "]", token.toString());
 	}
 
 }

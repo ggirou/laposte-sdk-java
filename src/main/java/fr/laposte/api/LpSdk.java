@@ -50,16 +50,12 @@ public class LpSdk {
 			init(null);
 		}
 
-		public static void init(Boolean strictSSL)
+		public static void init(final Boolean strictSSL)
 				throws KeyManagementException, NoSuchAlgorithmException,
 				KeyStoreException {
 			Unirest.setHttpClient(makeClient(strictSSL));
 			Unirest.setDefaultHeader("User-Agent",
 					"laposte-sdk/" + LpSdk.getVersion());
-		}
-
-		public static void quit() throws IOException {
-			Unirest.shutdown();
 		}
 
 		private static CloseableHttpClient makeClient(Boolean strictSSL)
@@ -76,8 +72,8 @@ public class LpSdk {
 				final SSLContextBuilder builder = new SSLContextBuilder();
 				builder.loadTrustMaterial(null, new TrustStrategy() {
 					@Override
-					public boolean isTrusted(X509Certificate[] chain,
-							String authType) throws CertificateException {
+					public boolean isTrusted(final X509Certificate[] chain,
+							final String authType) throws CertificateException {
 						return true;
 					}
 				});
@@ -87,6 +83,10 @@ public class LpSdk {
 						.build();
 			}
 			return httpclient;
+		}
+
+		public static void quit() throws IOException {
+			Unirest.shutdown();
 		}
 
 		private static final Logger logger = LoggerFactory
@@ -103,7 +103,7 @@ public class LpSdk {
 		 * @throws MalformedURLException
 		 * @throws URISyntaxException
 		 */
-		public ApiClient(String baseUrl) throws MalformedURLException,
+		public ApiClient(final String baseUrl) throws MalformedURLException,
 		URISyntaxException {
 			this.baseUrl = LpSdk.buildBaseUrl(baseUrl);
 			logger.debug("baseUrl : " + this.baseUrl);
@@ -118,7 +118,7 @@ public class LpSdk {
 		 * @throws MalformedURLException
 		 * @see Unirest
 		 */
-		public HttpRequestWithBody delete(String url)
+		public HttpRequestWithBody delete(final String url)
 				throws MalformedURLException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
 			logger.debug("DELETE " + apiUrl);
@@ -134,7 +134,7 @@ public class LpSdk {
 		 * @throws MalformedURLException
 		 * @see Unirest
 		 */
-		public GetRequest get(String url) throws MalformedURLException {
+		public GetRequest get(final String url) throws MalformedURLException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
 			logger.debug("GET " + apiUrl);
 			return Unirest.get(apiUrl);
@@ -149,7 +149,7 @@ public class LpSdk {
 		 * @throws MalformedURLException
 		 * @see Unirest
 		 */
-		public HttpRequestWithBody post(String url)
+		public HttpRequestWithBody post(final String url)
 				throws MalformedURLException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
 			logger.debug("POST " + apiUrl);
@@ -165,7 +165,8 @@ public class LpSdk {
 		 * @throws MalformedURLException
 		 * @see Unirest
 		 */
-		public HttpRequestWithBody put(String url) throws MalformedURLException {
+		public HttpRequestWithBody put(final String url)
+				throws MalformedURLException {
 			final String apiUrl = LpSdk.buildApiUrl(this.baseUrl, url);
 			logger.debug("PUT " + apiUrl);
 			return Unirest.put(apiUrl);
@@ -187,21 +188,21 @@ public class LpSdk {
 
 		private int statusCode;
 
-		public ApiException(Exception e) {
+		public ApiException(final Exception e) {
 			super(e);
 		}
 
-		public ApiException(int statusCode) {
+		public ApiException(final int statusCode) {
 			super();
 			this.statusCode = statusCode;
 		}
 
-		public ApiException(int statusCode, String msg) {
+		public ApiException(final int statusCode, final String msg) {
 			super(msg);
 			this.statusCode = statusCode;
 		}
 
-		public ApiException(String msg) {
+		public ApiException(final String msg) {
 			super(msg);
 		}
 
@@ -241,17 +242,18 @@ public class LpSdk {
 		public static final String LAPOSTE_API_REFRESH_TOKEN = "LAPOSTE_API_REFRESH_TOKEN";
 		public static final String DIGIPOSTE_API_BASE_URL = "DIGIPOSTE_API_BASE_URL";
 		public static final String DIGIPOSTE_API_ACCESS_TOKEN = "DIGIPOSTE_API_ACCESS_TOKEN";
+		public static final String DIGIPOSTE_API_REFRESH_TOKEN = "DIGIPOSTE_API_REFRESH_TOKEN";
 		public static final String DIGIPOSTE_API_USERNAME = "DIGIPOSTE_API_USERNAME";
 		public static final String DIGIPOSTE_API_PASSWORD = "DIGIPOSTE_API_PASSWORD";
 	};
 
-	static String buildApiUrl(URL baseUrl, String url)
+	static String buildApiUrl(final URL baseUrl, final String url)
 			throws MalformedURLException {
 		return new URL(baseUrl, "." + normalizeUrl(url)).toString().replaceAll(
 				"\\./", "");
 	}
 
-	static URL buildBaseUrl(String baseUrl) throws MalformedURLException,
+	static URL buildBaseUrl(final String baseUrl) throws MalformedURLException,
 	URISyntaxException {
 		return new URI(baseUrl).toURL();
 	};
@@ -279,7 +281,7 @@ public class LpSdk {
 		return version;
 	}
 
-	static String normalizeUrl(String url) {
+	static String normalizeUrl(final String url) {
 		if ("".equals(url)) {
 			return url;
 		}

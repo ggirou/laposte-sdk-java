@@ -32,13 +32,79 @@ public class Digiposte {
 	 *
 	 */
 	public static class DgpToken {
-		public String accessToken;
-		public String refreshToken;
+		private String accessToken;
+		private String refreshToken;
+		private String type;
+		private int expiresIn;
+		private long creationTime;
 
+		/**
+		 * @return the access token value
+		 */
+		public String getAccessToken() {
+			return accessToken;
+		}
+
+		/**
+		 * @return the creation time of the token in milliseconds
+		 */
+		public long getCreationTime() {
+			return creationTime;
+		}
+
+		/**
+		 * @return the expires in value of the token
+		 */
+		public int getExpiresIn() {
+			return expiresIn;
+		}
+
+		/**
+		 * @return the refresh token value
+		 */
+		public String getRefreshToken() {
+			return refreshToken;
+		}
+
+		/**
+		 * @return the type value of token
+		 */
+		public String getType() {
+			return type;
+		}
+
+		/**
+		 * @return the token validity state
+		 */
+		public boolean isValid() {
+			return validityTime() > 0;
+		}
+
+		private void setTokens(final String accessToken,
+				final String refreshToken) {
+			this.creationTime = System.currentTimeMillis();
+			this.accessToken = accessToken;
+			this.refreshToken = refreshToken;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Object#toString()
+		 */
 		@Override
 		public String toString() {
 			return "DgpToken [accessToken=" + accessToken + ", refreshToken="
-					+ refreshToken + "]";
+					+ refreshToken + ", type=" + type + ", expiresIn="
+					+ expiresIn + ", creationTime=" + creationTime + "]";
+		}
+
+		/**
+		 * @return the token validity time left in seconds
+		 */
+		public long validityTime() {
+			final long now = System.currentTimeMillis();
+			return creationTime + (long) (expiresIn * 1E6) - now;
 		}
 	}
 
@@ -102,12 +168,47 @@ public class Digiposte {
 			this.username = username;
 			final JsonNode body = res.getBody();
 			final JSONObject result = body.getObject();
-			dgpToken.accessToken = result.getString("access_token");
-			dgpToken.refreshToken = result.getString("refresh_token");
+			logger.debug("result : " + result);
+			dgpToken.setTokens(result.getString("access_token"),
+					result.getString("refresh_token"));
+			dgpToken.type = result.getString("token_type");
+			dgpToken.expiresIn = result.getInt("expires_in");
 		} catch (final UnirestException e) {
 			throw new ApiException(e);
 		}
 	}
+
+	/**
+	 * Authenticate a Digiposte customer, and provide a token for Digiposte API
+	 * services.
+	 * <p>
+	 * The resulting token is stored as "token" instance attribute.
+	 *
+	 * @param refreshToken
+	 *            the Digiposte refresh token
+	 * @see Token
+	 */
+	/*
+	 * public void refreshToken(String refreshToken) throws
+	 * MalformedURLException, ApiException { if (refreshToken == null) {
+	 * refreshToken = System
+	 * .getProperty(LpSdk.Env.DIGIPOSTE_API_REFRESH_TOKEN,dgpToken
+	 * .getRefreshToken()); } final JsonNode reqBody = new
+	 * JsonNode("{\"credential\":{\"user\":\"" + username +
+	 * "\", \"password\":\"" + password + "\"}}"); try { final
+	 * HttpResponse<JsonNode> res = apiClient.post("/login")
+	 * .header("Content-Type", "application/json") .header("Accept",
+	 * "application/json") .header("Authorization", "Bearer " + accessToken)
+	 * .body(reqBody).asJson(); final int code = res.getStatus(); if (code !=
+	 * 200) { throw new ApiException(code); } this.accessToken = accessToken;
+	 * this.username = username; final JsonNode body = res.getBody(); final
+	 * JSONObject result = body.getObject(); logger.debug("result : " + result);
+	 * dgpToken.setTokens(result.getString("access_token"),
+	 * result.getString("refresh_token")); dgpToken.type =
+	 * result.getString("token_type"); dgpToken.expiresIn =
+	 * result.getInt("expires_in"); } catch (final UnirestException e) { throw
+	 * new ApiException(e); } }
+	 */
 
 	public LpSdk.ApiClient getApiClient() {
 		return apiClient;
@@ -126,7 +227,7 @@ public class Digiposte {
 	 * @throws MalformedURLException
 	 * @throws ApiException
 	 */
-	public JSONObject getDoc(String id) throws MalformedURLException,
+	public JSONObject getDoc(final String id) throws MalformedURLException,
 	ApiException {
 		try {
 			final HttpResponse<JsonNode> res = apiClient.get("/document/{id}")
@@ -163,8 +264,8 @@ public class Digiposte {
 	 * @throws MalformedURLException
 	 * @throws ApiException
 	 */
-	public JSONObject getDocs(String location, Integer index,
-			Integer maxResults, String sort, Boolean ascending)
+	public JSONObject getDocs(final String location, final Integer index,
+			final Integer maxResults, final String sort, final Boolean ascending)
 					throws MalformedURLException, ApiException {
 		final String url = "/documents"
 				+ (location != null ? ("/" + location) : "");
@@ -209,7 +310,8 @@ public class Digiposte {
 	 * @throws ApiException
 	 * @throws IOException
 	 */
-	public byte[] getDocThumbnail(String id) throws ApiException, IOException {
+	public byte[] getDocThumbnail(final String id) throws ApiException,
+			IOException {
 		try {
 			final HttpResponse<InputStream> res = apiClient
 					.get("/document/{id}/thumbnail").routeParam("id", id)
@@ -327,7 +429,7 @@ public class Digiposte {
 		return username;
 	}
 
-	public void setToken(DgpToken token) {
+	public void setToken(final DgpToken token) {
 		this.dgpToken = token;
 	}
 }

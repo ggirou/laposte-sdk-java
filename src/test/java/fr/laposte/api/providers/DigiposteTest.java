@@ -4,21 +4,27 @@ import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
 import static com.jcabi.matchers.RegexMatchers.matchesPattern;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -27,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import fr.laposte.api.LaPoste;
 import fr.laposte.api.LpSdk;
 import fr.laposte.api.LpSdk.ApiException;
-import fr.laposte.api.providers.Digiposte;
+import fr.laposte.api.providers.Digiposte.DgpToken;
 
 public class DigiposteTest {
 	@AfterClass
@@ -40,10 +46,10 @@ public class DigiposteTest {
 		LpSdk.ApiClient.init();
 		lp = new LaPoste();
 		lp.auth(null, null, null, null);
-		System.setProperty(LpSdk.Env.LAPOSTE_API_ACCESS_TOKEN,
-				lp.getToken().accessToken);
-		System.setProperty(LpSdk.Env.LAPOSTE_API_REFRESH_TOKEN,
-				lp.getToken().refreshToken);
+		System.setProperty(LpSdk.Env.LAPOSTE_API_ACCESS_TOKEN, lp.getToken()
+				.getAccessToken());
+		System.setProperty(LpSdk.Env.LAPOSTE_API_REFRESH_TOKEN, lp.getToken()
+				.getRefreshToken());
 		dgp = new Digiposte();
 	}
 
@@ -56,20 +62,38 @@ public class DigiposteTest {
 
 	private String docId;
 
-	@Test
-	public void testAuth() throws Exception {
-		dgp.auth(null, null, null);
-		final Digiposte.DgpToken dgpToken = dgp.getDgpToken();
-		assertNotNull(dgpToken);
-		assertThat(dgpToken.accessToken, matchesPattern("[\\w-]+"));
-		assertThat(dgpToken.refreshToken, matchesPattern("[\\w-]+"));
+	@Before
+	public void auth() throws MalformedURLException, ApiException {
+		final DgpToken dgpToken = dgp.getDgpToken();
+		if (dgpToken.getAccessToken() == null) {
+			dgp.auth(null, null, null);
+			/*
+			 * } else { if (!dgpToken.isValid()) { dgp.refreshToken(null); }
+			 */
+		}
 	}
 
 	@Test
-	public void testGetDocById() throws Exception {
-		if (dgp.getDgpToken().accessToken == null) {
-			dgp.auth(null, null, null);
-		}
+	public void testAuth() {
+		final Digiposte.DgpToken dgpToken = dgp.getDgpToken();
+		assertNotNull(dgpToken);
+		logger.debug("dgpToken : " + dgpToken);
+		assertThat(dgpToken.getAccessToken(), matchesPattern("[\\w-]+"));
+		assertThat(dgpToken.getRefreshToken(), matchesPattern("[\\w-]+"));
+		assertEquals("bearer", dgpToken.getType());
+		assertThat(dgpToken.getExpiresIn(), greaterThan(0));
+		assertThat(dgpToken.validityTime(), greaterThan(0L));
+		assertTrue(dgpToken.isValid());
+		assertEquals("DgpToken [accessToken=" + dgpToken.getAccessToken()
+				+ ", refreshToken=" + dgpToken.getRefreshToken() + ", type="
+				+ dgpToken.getType() + ", expiresIn=" + dgpToken.getExpiresIn()
+				+ ", creationTime=" + dgpToken.getCreationTime() + "]",
+				dgpToken.toString());
+	}
+
+	@Test
+	public void testGetDocById() throws JSONException, MalformedURLException,
+	ApiException {
 		String docId = System.getProperty("DIGIPOSTE_API_DOC_ID", this.docId);
 		if (docId == null) {
 			final JSONArray docs = (JSONArray) dgp.getDocs("safe", 1, 1, null,
@@ -89,10 +113,7 @@ public class DigiposteTest {
 	}
 
 	@Test
-	public void testGetDocs() throws Exception {
-		if (dgp.getDgpToken().accessToken == null) {
-			dgp.auth(null, null, null);
-		}
+	public void testGetDocs() throws MalformedURLException, ApiException {
 		final JSONObject result = dgp.getDocs(null, null, null, null, null);
 		assertNotNull(result);
 		assertEquals(0, result.getInt("index"));
@@ -104,10 +125,8 @@ public class DigiposteTest {
 	}
 
 	@Test
-	public void testGetDocsSortedByTitle() throws Exception {
-		if (dgp.getDgpToken().accessToken == null) {
-			dgp.auth(null, null, null);
-		}
+	public void testGetDocsSortedByTitle() throws MalformedURLException,
+	ApiException {
 		final JSONObject result = dgp.getDocs(null, null, null, "TITLE", true);
 		assertNotNull(result);
 		assertThat(result.get("documents"), instanceOf(JSONArray.class));
@@ -124,7 +143,7 @@ public class DigiposteTest {
 		Collections.sort(titleList, new Comparator<String>() {
 
 			@Override
-			public int compare(String o1, String o2) {
+			public int compare(final String o1, final String o2) {
 				return o1.toLowerCase().compareTo(o2.toLowerCase());
 			}
 		});
@@ -134,10 +153,8 @@ public class DigiposteTest {
 	}
 
 	@Test
-	public void testGetDocsSortedByTitleDescending() throws Exception {
-		if (dgp.getDgpToken().accessToken == null) {
-			dgp.auth(null, null, null);
-		}
+	public void testGetDocsSortedByTitleDescending()
+			throws MalformedURLException, ApiException {
 		final JSONObject result = dgp.getDocs(null, null, null, "TITLE", false);
 		assertNotNull(result);
 		assertThat(result.get("documents"), instanceOf(JSONArray.class));
@@ -154,7 +171,7 @@ public class DigiposteTest {
 		Collections.sort(titleList, new Comparator<String>() {
 
 			@Override
-			public int compare(String o1, String o2) {
+			public int compare(final String o1, final String o2) {
 				return o2.toLowerCase().compareTo(o1.toLowerCase());
 			}
 		});
@@ -164,10 +181,8 @@ public class DigiposteTest {
 	}
 
 	@Test
-	public void testGetDocThumnail() throws Exception {
-		if (dgp.getDgpToken().accessToken == null) {
-			dgp.auth(null, null, null);
-		}
+	public void testGetDocThumnail() throws JSONException, ApiException,
+	IOException {
 		String docId = System.getProperty("DIGIPOSTE_API_DOC_ID", this.docId);
 		if (docId == null) {
 			final JSONArray docs = (JSONArray) dgp.getDocs("safe", 1, 1, null,
@@ -180,10 +195,8 @@ public class DigiposteTest {
 	}
 
 	@Test
-	public void testGetFirstDocSafebox() throws Exception {
-		if (dgp.getDgpToken().accessToken == null) {
-			dgp.auth(null, null, null);
-		}
+	public void testGetFirstDocSafebox() throws MalformedURLException,
+	ApiException {
 		final JSONObject result = dgp.getDocs("safe", 1, 1, null, null);
 		assertNotNull(result);
 		assertEquals(1, result.getInt("index"));
@@ -197,10 +210,7 @@ public class DigiposteTest {
 	}
 
 	@Test
-	public void testGetProfile() throws Exception {
-		if (dgp.getDgpToken().accessToken == null) {
-			dgp.auth(null, null, null);
-		}
+	public void testGetProfile() throws MalformedURLException, ApiException {
 		final JSONObject profile = dgp.getProfile();
 		assertNotNull(profile);
 		final String[] names = new String[] { "id", "title", "first_name",
@@ -228,20 +238,14 @@ public class DigiposteTest {
 	}
 
 	@Test
-	public void testGetProfileAvatar() throws Exception {
-		if (dgp.getDgpToken().accessToken == null) {
-			dgp.auth(null, null, null);
-		}
+	public void testGetProfileAvatar() throws ApiException, IOException {
 		final byte[] content = dgp.getProfileAvatar();
 		assertNotNull(content);
 		assertThat(content.length, greaterThan(0));
 	}
 
 	@Test
-	public void testGetTou() throws Exception {
-		if (dgp.getDgpToken().accessToken == null) {
-			dgp.auth(null, null, null);
-		}
+	public void testGetTou() throws MalformedURLException, ApiException {
 		final JSONObject result = dgp.getTou();
 		assertNotNull(result);
 		assertNotNull(result.getString("version"));
@@ -249,10 +253,8 @@ public class DigiposteTest {
 	}
 
 	@Test
-	public void testTryToGetDocWithBadId() throws Exception {
-		if (dgp.getDgpToken().accessToken == null) {
-			dgp.auth(null, null, null);
-		}
+	public void testTryToGetDocWithBadId() throws MalformedURLException,
+	ApiException {
 		final String docId = "badid";
 		catchException(dgp).getDoc(docId);
 		final Exception caughtException = caughtException();
