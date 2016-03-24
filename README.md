@@ -40,7 +40,7 @@ Available services :
 
 This is the main service, its main goal is to deal with Open API token.
 
-Have a look at [LaPoste api doc](http://laposteapi.github.io/laposte-sdk-js/classes/LaPoste.html) for more information.
+Have a look at [LaPoste api doc](http://developerlaposte.github.io/laposte-sdk-java/index.html?fr/laposte/api/LaPoste.html) for more information.
 
 ### [Digiposte](http://www.laposte.fr/particulier/produits/presentation/digiposte/vos-donnees-securisees-a-vie)
 
@@ -48,7 +48,7 @@ Digiposte is a safebox web application, and an API provider of the Groupe La Pos
 
 The Digiposte class exposes all the things you need to consume Digiposte APIs.
 
-Have a look at [Digiposte api doc](http://laposteapi.github.io/laposte-sdk-js/classes/Digiposte.html) for more information.
+Have a look at [Digiposte api doc](http://developerlaposte.github.io/laposte-sdk-java/index.html?fr/laposte/api/providers/Digiposte.html) for more information.
 
 ## Usage
 
@@ -105,7 +105,7 @@ System.out.println("doc : " + doc);
 
 ## API doc
 
-Full documentation : [laposteapi.github.io/laposte-sdk-java](http://laposteapi.github.io/laposte-sdk-java)
+Full documentation : [developerlaposte.github.io/laposte-sdk-java](http://developerlaposte.github.io/laposte-sdk-java)
 
 ## License
 
